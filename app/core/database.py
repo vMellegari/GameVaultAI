@@ -19,6 +19,10 @@ Base = declarative_base()
 
 
 def get_db():
+    """
+    Cria uma sessão com o banco de dados e garante que ela
+    seja fechada corretamente ao final da operação.
+    """
     db = SessionLocal()
 
     try:
