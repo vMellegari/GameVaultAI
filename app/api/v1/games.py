@@ -1,36 +1,29 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.core.database import get_db
-from app.models.game import Game
-from app.schemas.game import GameCreate
+from app.schemas.game import GameCreate, GameResponse 
+from app.services import game_service
 
 router = APIRouter()
 
-
-@router.post("/games")
+@router.post("/games", response_model=GameResponse, status_code=status.HTTP_201_CREATED)
 def create_game(game: GameCreate, db: Session = Depends(get_db)):
-    db_game = Game(
-    title=game.title,
-    platform=game.platform,
-    status="BACKLOG"
-)
-    db.add(db_game)
-    db.commit()
-    db.refresh(db_game)
+    return game_service.create_game(db=db, game_data=game)
 
-    return db_game
 
-@router.get("/games")
+@router.get("/games", response_model=List[GameResponse])
 def list_games(db: Session = Depends(get_db)):
-    games = db.query(Game).all()
-    return games
+    return game_service.get_all_games(db=db)
 
-@router.get("/games/{game_id}")
+
+@router.get("/games/{game_id}", response_model=GameResponse)
 def get_game(game_id: int, db: Session = Depends(get_db)):
-    game = db.query(Game).filter(Game.id == game_id).first()
-
+    game = game_service.get_game_by_id(db=db, game_id=game_id)
     if not game:
-        return {"error": "Jogo não encontrado."}
-
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Jogo não encontrado."
+        )
     return game
