@@ -4,13 +4,19 @@ from typing import List
 
 from app.core.database import get_db
 from app.schemas.game import GameCreate, GameResponse 
-from app.services import game_service
+from app.schemas.rawg import RawgGame
+from app.services import game_service, rawg_service
 
 router = APIRouter()
 
 @router.post("/games", response_model=GameResponse, status_code=status.HTTP_201_CREATED)
 def create_game(game: GameCreate, db: Session = Depends(get_db)):
     return game_service.create_game(db=db, game_data=game)
+
+
+@router.get("/games/search", response_model=list[RawgGame])
+def search_games(query: str):
+    return rawg_service.search_games(query)
 
 
 @router.get("/games", response_model=List[GameResponse])

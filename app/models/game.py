@@ -18,3 +18,10 @@ class Game(Base):
     hours_played = Column(Float, nullable=False, default=0.0)
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    # Dados da API RAWG
+    rawg_id = Column(Integer, nullable=True, index=True)
+    cover_image = Column(String, nullable=True)
+    release_date = Column(DateTime, nullable=True)
+    genres = Column(String, nullable=True)
+    metacritic_score = Column(Float, nullable=True)
