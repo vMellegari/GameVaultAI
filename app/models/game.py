@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Enum, Integer, String, Float, DateTime
+from sqlalchemy import Column, Date, Enum, Integer, String, Float, DateTime
 from datetime import datetime, timezone
 from app.core.database import Base
 from app.models.enums import GameStatus
@@ -22,6 +22,6 @@ class Game(Base):
     # Dados da API RAWG
     rawg_id = Column(Integer, nullable=True, index=True)
     cover_image = Column(String, nullable=True)
-    release_date = Column(DateTime, nullable=True)
+    release_date = Column(Date, nullable=True)
     genres = Column(String, nullable=True)
     metacritic_score = Column(Float, nullable=True)

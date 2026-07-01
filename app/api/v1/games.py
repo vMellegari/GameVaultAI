@@ -33,3 +33,7 @@ def get_game(game_id: int, db: Session = Depends(get_db)):
             detail="Jogo não encontrado."
         )
     return game
+
+@router.post("/games/import/{rawg_id}", response_model=GameResponse)
+def import_game(rawg_id: int, db: Session = Depends(get_db)):
+    return game_service.import_game_from_rawg(db=db, rawg_id=rawg_id)
