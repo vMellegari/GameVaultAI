@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
+from app.models.enums import GameStatus
 from app.models.game import Game
-from app.schemas.game import GameCreate
+from app.schemas.game import GameCreate, GameUpdate
 from app.services.rawg_service import get_game_details
 
 def create_game(db: Session, game_data: GameCreate) -> Game:
@@ -16,18 +17,31 @@ def create_game(db: Session, game_data: GameCreate) -> Game:
     db.refresh(db_game)
     return db_game
 
-def get_all_games(db: Session):
+def get_all_games(
+        db: Session,
+        status: GameStatus | None = None,
+        platform: str | None = None,
+        title: str | None = None):
     """Retorna todos os jogos cadastrados."""
-    return db.query(Game).all()
+    query = db.query(Game)
+
+    if status:
+        query = query.filter(Game.status == status)
+
+    if platform:
+        query = query.filter(Game.platform == platform)
+
+    if title:
+        query = query.filter(Game.title.ilike(f"%{title}%"))
+
+    return query.all()
 
 def get_game_by_id(db: Session, game_id: int):
     """Busca um jogo específico pelo ID."""
     return db.query(Game).filter(Game.id == game_id).first()
 
 def import_game_from_rawg(db: Session, rawg_id: int):
-    """
-    Importa um jogo da RAWG e salva no banco de dados.
-    """
+    """Importa um jogo da RAWG e salva no banco de dados."""
     game_details = get_game_details(rawg_id)
     if not game_details:
         return None
@@ -61,3 +75,33 @@ def import_game_from_rawg(db: Session, rawg_id: int):
     db.commit()
     db.refresh(db_game)
     return db_game
+
+
+def update_game(db: Session, game_id: int, game_data: GameUpdate):
+    """Atualiza os dados de um jogo existente."""
+    db_game = get_game_by_id(db, game_id)
+
+    if not db_game:
+        return None
+
+    update_data = game_data.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(db_game, key, value)
+
+    db.commit()
+    db.refresh(db_game)
+
+    return db_game
+
+def delete_game(db: Session, game_id: int):
+    """Remove um jogo do banco de dados."""
+    db_game = get_game_by_id(db, game_id)
+
+    if not db_game:
+        return False
+
+    db.delete(db_game)
+    db.commit()
+
+    return True

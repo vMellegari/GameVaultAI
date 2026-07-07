@@ -11,12 +11,11 @@ class GameCreate(GameBase):
     pass
 
 class GameUpdate(BaseModel):
-    title: Optional[str] = None
     platform: Optional[str] = None
     status: Optional[str] = None
-    cover_image: Optional[str] = None
-    genres: Optional[str] = None
-    metacritic_score: Optional[float] = None
+    personal_rating: Optional[float] = None
+    hours_played: Optional[float] = None
+    notes: Optional[str] = None
 
 class GameResponse(GameBase):
     id: int
