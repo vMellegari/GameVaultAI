@@ -1,14 +1,13 @@
 import requests
 
 from app.core.config import settings
+from app.schemas.rawg import RawgGameDetails
 
 BASE_URL = "https://api.rawg.io/api"
 
 
 def search_games(query: str) -> list[dict]:
-    """
-    Busca jogos na API da RAWG com base na query fornecida e retorna uma lista de dicionários contendo informações sobre os jogos encontrados.
-    """
+    """Busca jogos na API da RAWG com base na query fornecida e retorna uma lista de dicionários contendo informações sobre os jogos encontrados."""
 
     url = f"{BASE_URL}/games"
 
@@ -45,10 +44,7 @@ def search_games(query: str) -> list[dict]:
         return []
     
 
-def get_game_details(rawg_id: int) -> dict:
-    """
-    Busca detalhes de um jogo específico na API da RAWG pelo seu ID.
-    """
+def get_game_details(rawg_id: int) -> RawgGameDetails | None:
 
     url = f"{BASE_URL}/games/{rawg_id}"
 
@@ -67,17 +63,23 @@ def get_game_details(rawg_id: int) -> dict:
             for genre in game.get("genres", [])
         )
 
-        return {
-            "rawg_id": game.get("id"),
-            "title": game.get("name"),
-            "cover_image": game.get("background_image"),
-            "released": game.get("released"),
-            "description": game.get("description_raw") or game.get("description"),
-            "genres": genres,
-            "metacritic_score": game.get("metacritic")
-        }
+        platform = ", ".join(
+            platform["platform"]["name"]
+            for platform in game.get("platforms", [])
+        )
+
+        return RawgGameDetails(
+            rawg_id=game.get("id"),
+            title=game.get("name"),
+            platform=platform,
+            cover_image=game.get("background_image"),
+            released=game.get("released"),
+            description=game.get("description_raw") or game.get("description"),
+            genres=genres,
+            metacritic_score=game.get("metacritic"),
+        )
 
     except requests.exceptions.RequestException as e:
         print(f"Erro ao buscar detalhes do jogo na RAWG: {e}")
-        return {}
+        return None
     

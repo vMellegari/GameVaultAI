@@ -16,6 +16,7 @@ class GameUpdate(BaseModel):
     personal_rating: Optional[float] = None
     hours_played: Optional[float] = None
     notes: Optional[str] = None
+    favorite: Optional[bool] = None
 
 class GameResponse(GameBase):
     id: int
@@ -25,6 +26,7 @@ class GameResponse(GameBase):
     release_date: Optional[date] = None
     genres: Optional[str] = None
     metacritic_score: Optional[float] = None
+    favorite: bool
 
     class Config:
         from_attributes = True 

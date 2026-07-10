@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Date, Enum, Integer, String, Float, DateTime
+from sqlalchemy import Column, Date, Enum, Integer, String, Float, DateTime, Boolean
 from datetime import datetime, timezone
 from app.core.database import Base
 from app.models.enums import GameStatus
@@ -18,6 +18,7 @@ class Game(Base):
     hours_played = Column(Float, nullable=False, default=0.0)
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    favorite = Column(Boolean, default=False, nullable=False)
 
     # Dados da API RAWG
     rawg_id = Column(Integer, nullable=True, index=True)
