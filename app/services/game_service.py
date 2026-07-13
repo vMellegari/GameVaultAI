@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import Date, func
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.enums import GameStatus, SortField
@@ -135,6 +135,57 @@ def update_game(db: Session, game_id: int, game_data: GameUpdate):
 
     for key, value in update_data.items():
         setattr(db_game, key, value)
+
+    if "status" in update_data:
+        if db_game.status == GameStatus.COMPLETED:
+            if db_game.completed_at is None:
+                db_game.completed_at = datetime.now().date()
+        else:
+            db_game.completed_at = None
+
+    db.commit()
+    db.refresh(db_game)
+
+    return db_game
+
+def toggle_favorite(db: Session, game_id: int) -> Game | None:
+    """Alterna o estado de favorito de um jogo."""
+    db_game = get_game_by_id(db, game_id)
+
+    if not db_game:
+        return None
+
+    db_game.favorite = not db_game.favorite
+
+    db.commit()
+    db.refresh(db_game)
+
+    return db_game
+
+def start_game(db: Session, game_id: int) -> Game | None:
+    """Marca um jogo como PLAYING."""
+    db_game = get_game_by_id(db, game_id)
+
+    if not db_game:
+        return None
+
+    db_game.status = GameStatus.PLAYING
+    db_game.completed_at = None
+
+    db.commit()
+    db.refresh(db_game)
+
+    return db_game
+
+def complete_game(db: Session, game_id: int) -> Game | None:
+    """Marca um jogo como COMPLETED."""
+    db_game = get_game_by_id(db, game_id)
+
+    if not db_game:
+        return None
+
+    db_game.status = GameStatus.COMPLETED
+    db_game.completed_at = datetime.now().date()
 
     db.commit()
     db.refresh(db_game)

@@ -19,6 +19,7 @@ class Game(Base):
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     favorite = Column(Boolean, default=False, nullable=False)
+    completed_at = Column(Date, nullable=True)
 
     # Dados da API RAWG
     rawg_id = Column(Integer, nullable=True, index=True)
