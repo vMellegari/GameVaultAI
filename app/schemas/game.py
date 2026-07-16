@@ -21,13 +21,19 @@ class GameUpdate(BaseModel):
 class GameResponse(GameBase):
     id: int
     status: str
+
+    personal_rating: float | None = None
+    hours_played: float
+    notes: str | None = None
+
     favorite: bool
-    rawg_id: Optional[int] = None
-    cover_image: Optional[str] = None
-    release_date: Optional[date] = None
-    genres: Optional[str] = None
-    metacritic_score: Optional[float] = None
-    completed_at: Optional[datetime] = None
+
+    rawg_id: int | None = None
+    cover_image: str | None = None
+    release_date: date | None = None
+    genres: str | None = None
+    metacritic_score: float | None = None
+    completed_at: datetime | None = None
 
     class Config:
         from_attributes = True 
