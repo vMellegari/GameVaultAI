@@ -38,3 +38,28 @@ def client():
 def clean_database():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+
+    yield
+
+    Base.metadata.drop_all(bind=engine)
+
+@pytest.fixture
+def create_game(client):
+    def _create_game(
+        title="Test Game",
+        platform="PC",
+        **kwargs
+    ):
+        data = {
+            "title": title,
+            "platform": platform,
+            **kwargs
+        }
+
+        response = client.post("/games", json=data)
+
+        assert response.status_code == 201, response.text
+
+        return response.json()
+
+    return _create_game
