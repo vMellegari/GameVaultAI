@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.core.database import engine, Base
 from app.models import game
 from app.api.v1.games import router as games_router
+from app.api.v1.users import router as user_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -16,6 +17,7 @@ app = FastAPI(
 )
 
 app.include_router(games_router)
+app.include_router(user_router)
 
 @app.get("/")
 def root():

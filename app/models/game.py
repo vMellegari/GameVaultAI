@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Date, Enum, Integer, String, Float, DateTime, Boolean
+from sqlalchemy import Column, Date, Enum, Integer, String, Float, DateTime, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.core.database import Base
 from app.models.enums import GameStatus
@@ -7,6 +8,8 @@ from app.models.enums import GameStatus
 class Game(Base):
     __tablename__ = "games"
     id = Column(Integer, primary_key=True, index=True, nullable=False)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner = relationship("User", back_populates="games")
 
     # Informações do jogo
     title = Column(String, nullable=False, index=True)
