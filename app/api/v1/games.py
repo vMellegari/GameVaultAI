@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_user
+from app.models.user import User
 from app.models.enums import GameStatus, SortField
 from app.schemas.game import GameCreate, GameResponse, GameUpdate
 from app.schemas.stats import GameStats
@@ -40,6 +42,7 @@ def search_games(query: str):
         )
 def list_games(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
     status: GameStatus | None = None,
     platform: str | None = None,
     title: str |None = None,

@@ -1,10 +1,64 @@
+from datetime import datetime, timedelta, UTC
+from typing import Optional
+
+from jose import jwt, JWTError
+from fastapi import HTTPException, status
 from passlib.context import CryptContext
+
+SECRET_KEY = "COLOQUE_UMA_CHAVE_BEM_GRANDE_AQUI"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
 )
 
+
+def create_access_token(
+    data: dict,
+    expires_delta: Optional[timedelta] = None
+):
+    to_encode = data.copy()
+
+    if expires_delta:
+        expire = datetime.now(UTC) + expires_delta
+    else:
+        expire = datetime.now(UTC) + timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+
+    to_encode.update({"exp": expire})
+    
+    return jwt.encode(
+    to_encode,
+    SECRET_KEY,
+    algorithm=ALGORITHM
+)
+
+def verify_access_token(token: str):
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        username = payload.get("sub")
+
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido."
+            )
+
+        return username
+
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido."
+        )
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
