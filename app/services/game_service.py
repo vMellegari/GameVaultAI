@@ -3,13 +3,15 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from app.models.enums import GameStatus, SortField
 from app.models.game import Game
+from app.models.user import User
 from app.schemas.game import GameCreate, GameUpdate
 from app.schemas.rawg import RawgGameDetails
 from app.services.rawg_service import get_game_details
 
-def create_game(db: Session, game_data: GameCreate) -> Game:
+def create_game(db: Session, game_data: GameCreate, owner: User) -> Game:
     """Cria um novo jogo no banco de dados."""
     db_game = Game(
+        owner_id=owner.id,
         title=game_data.title,
         platform=game_data.platform,
         status=GameStatus.BACKLOG
@@ -21,16 +23,17 @@ def create_game(db: Session, game_data: GameCreate) -> Game:
 
 def get_all_games(
         db: Session,
+        owner: User,
         status: GameStatus | None = None,
         platform: str | None = None,
         title: str | None = None,
         sort_by: SortField | None = None,
         favorite: bool | None = None,
         page: int = 1,
-        limit: int = 10
+        limit: int = 10,
         ):
     """Retorna todos os jogos cadastrados."""
-    query = db.query(Game)
+    query = db.query(Game).filter(Game.owner_id == owner.id)
 
     if status:
         query = query.filter(Game.status == status)
@@ -53,9 +56,9 @@ def get_all_games(
 
     return query.all()
 
-def get_game_by_id(db: Session, game_id: int):
+def get_game_by_id(db: Session, game_id: int, owner: User) -> Game | None:
     """Busca um jogo específico pelo ID."""
-    return db.query(Game).filter(Game.id == game_id).first()
+    return db.query(Game).filter(Game.id == game_id, Game.owner_id == owner.id).first()
 
 def parse_release_date(released: str | None):
     if not released:
@@ -124,9 +127,9 @@ def refresh_game_from_rawg(db: Session, game_id: int):
     return db_game
 
 
-def update_game(db: Session, game_id: int, game_data: GameUpdate):
+def update_game(db: Session, game_id: int, game_data: GameUpdate, owner: User) -> Game | None:
     """Atualiza os dados de um jogo existente."""
-    db_game = get_game_by_id(db, game_id)
+    db_game = get_game_by_id(db=db, game_id=game_id, owner=owner)
 
     if not db_game:
         return None
@@ -148,9 +151,9 @@ def update_game(db: Session, game_id: int, game_data: GameUpdate):
 
     return db_game
 
-def toggle_favorite(db: Session, game_id: int) -> Game | None:
+def toggle_favorite(db: Session, game_id: int, owner: User) -> Game | None:
     """Alterna o estado de favorito de um jogo."""
-    db_game = get_game_by_id(db, game_id)
+    db_game = get_game_by_id(db=db, game_id=game_id, owner=owner)
 
     if not db_game:
         return None
@@ -162,9 +165,9 @@ def toggle_favorite(db: Session, game_id: int) -> Game | None:
 
     return db_game
 
-def start_game(db: Session, game_id: int) -> Game | None:
+def start_game(db: Session, game_id: int, owner: User) -> Game | None:
     """Marca um jogo como PLAYING."""
-    db_game = get_game_by_id(db, game_id)
+    db_game = get_game_by_id(db=db, game_id=game_id, owner=owner)
 
     if not db_game:
         return None
@@ -177,9 +180,9 @@ def start_game(db: Session, game_id: int) -> Game | None:
 
     return db_game
 
-def complete_game(db: Session, game_id: int) -> Game | None:
+def complete_game(db: Session, game_id: int, owner: User) -> Game | None:
     """Marca um jogo como COMPLETED."""
-    db_game = get_game_by_id(db, game_id)
+    db_game = get_game_by_id(db=db, game_id=game_id, owner=owner)
 
     if not db_game:
         return None
@@ -192,9 +195,9 @@ def complete_game(db: Session, game_id: int) -> Game | None:
 
     return db_game
 
-def delete_game(db: Session, game_id: int):
+def delete_game(db: Session, game_id: int, owner: User):
     """Remove um jogo do banco de dados."""
-    db_game = get_game_by_id(db, game_id)
+    db_game = get_game_by_id(db=db, game_id=game_id, owner=owner)
 
     if not db_game:
         return False
@@ -204,40 +207,46 @@ def delete_game(db: Session, game_id: int):
 
     return True
 
-def get_statistics(db: Session):
+def get_statistics(db: Session, owner: User):
     """Retorna estatísticas da biblioteca."""
 
-    total_games = db.query(Game).count()
+    base_query = db.query(Game).filter(
+        Game.owner_id == owner.id
+    )
 
-    backlog = db.query(Game).filter(
+    total_games = base_query.count()
+
+    backlog = base_query.filter(
         Game.status == GameStatus.BACKLOG
     ).count()
 
-    playing = db.query(Game).filter(
+    playing = base_query.filter(
         Game.status == GameStatus.PLAYING
     ).count()
 
-    completed = db.query(Game).filter(
+    completed = base_query.filter(
         Game.status == GameStatus.COMPLETED
     ).count()
 
-    dropped = db.query(Game).filter(
+    dropped = base_query.filter(
         Game.status == GameStatus.DROPPED
     ).count()
 
-    wishlist = db.query(Game).filter(
+    wishlist = base_query.filter(
         Game.status == GameStatus.WISHLIST
     ).count()
 
-    favorite_games = db.query(Game).filter(
-        Game.favorite == True
+    favorite_games = base_query.filter(
+        Game.favorite.is_(True)
     ).count()
 
-    total_hours = db.query(
-        func.sum(Game.hours_played)
-    ).scalar() or 0
+    total_hours = (
+        base_query.with_entities(
+            func.sum(Game.hours_played)
+        ).scalar() or 0
+    )
 
-    average_rating = db.query(
+    average_rating = base_query.with_entities(
         func.avg(Game.personal_rating)
     ).scalar()
 
@@ -250,5 +259,5 @@ def get_statistics(db: Session):
         "wishlist": wishlist,
         "favorite_games": favorite_games,
         "total_hours": total_hours,
-        "average_rating": average_rating
+        "average_rating": average_rating,
     }

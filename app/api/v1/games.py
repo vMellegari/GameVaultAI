@@ -20,8 +20,12 @@ router = APIRouter()
         summary="Cadastrar um novo jogo",
         description="Permite cadastrar um novo jogo no banco de dados com base nas informações fornecidas."
         )
-def create_game(game: GameCreate, db: Session = Depends(get_db)):
-    return game_service.create_game(db=db, game_data=game)
+def create_game(
+    game: GameCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    ):
+    return game_service.create_game(db=db, game_data=game, owner=current_user)
 
 
 @router.get(
@@ -54,6 +58,7 @@ def list_games(
 
     return game_service.get_all_games(
         db=db,
+        owner=current_user,
         status=status,
         platform=platform,
         title=title,
@@ -69,8 +74,8 @@ def list_games(
         summary="Obter estatísticas dos seus jogos cadastrados", 
         description="Retorna estatísticas gerais sobre os jogos cadastrados no banco de dados."
         )
-def get_game_stats(db: Session = Depends(get_db)):
-    return game_service.get_statistics(db)
+def get_game_stats(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return game_service.get_statistics(db=db, owner=current_user)
 
 @router.get(
         "/games/{game_id}", 
@@ -78,8 +83,8 @@ def get_game_stats(db: Session = Depends(get_db)):
         summary="Obter detalhes de um jogo específico",
         description="Retorna os detalhes de um jogo específico com base no ID do Banco de Dados fornecido."
         )
-def get_game(game_id: int, db: Session = Depends(get_db)):
-    game = game_service.get_game_by_id(db=db, game_id=game_id)
+def get_game(game_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    game = game_service.get_game_by_id(db=db, game_id=game_id, owner=current_user)
     if not game:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -119,8 +124,8 @@ def refresh_game(game_id: int, db: Session = Depends(get_db)):
         summary="Atualizar informações proprias de um jogo",
         description="Permite atualizar as informações de um jogo cadastrado no banco de dados com base no ID do jogo."
         )
-def update_game(game_id: int, game_data: GameUpdate, db: Session = Depends(get_db)):
-    game = game_service.update_game(db=db, game_id=game_id, game_data=game_data)
+def update_game(game_id: int, game_data: GameUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    game = game_service.update_game(db=db, game_id=game_id, game_data=game_data, owner=current_user)
     if not game:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -134,8 +139,8 @@ def update_game(game_id: int, game_data: GameUpdate, db: Session = Depends(get_d
         summary="Iniciar um jogo, toggle",
         description="Toggle para iniciar um jogo cadastrado no banco de dados com base no ID do jogo."
         )
-def start_game(game_id: int, db: Session = Depends(get_db)):
-    game = game_service.start_game(db=db, game_id=game_id)
+def start_game(game_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    game = game_service.start_game(db=db, game_id=game_id, owner=current_user)
 
     if not game:
         raise HTTPException(
@@ -151,8 +156,8 @@ def start_game(game_id: int, db: Session = Depends(get_db)):
         summary="Completar um jogo, toggle",
         description="Toggle para marcar um jogo como completo no banco de dados com base no ID do jogo."
         )
-def complete_game(game_id: int, db: Session = Depends(get_db)):
-    game = game_service.complete_game(db=db, game_id=game_id)
+def complete_game(game_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    game = game_service.complete_game(db=db, game_id=game_id, owner=current_user)
 
     if not game:
         raise HTTPException(
@@ -168,8 +173,8 @@ def complete_game(game_id: int, db: Session = Depends(get_db)):
         summary="Marcar/desmarcar um jogo como favorito, toggle",
         description="Toggle para marcar um jogo como favorito no banco de dados com base no ID do jogo."
         )
-def toggle_favorite(game_id: int, db: Session = Depends(get_db)):
-    game = game_service.toggle_favorite(db=db, game_id=game_id)
+def toggle_favorite(game_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    game = game_service.toggle_favorite(db=db, game_id=game_id, owner=current_user)
 
     if not game:
         raise HTTPException(
@@ -185,8 +190,8 @@ def toggle_favorite(game_id: int, db: Session = Depends(get_db)):
         summary="Excluir um jogo",
         description="Permite excluir um jogo cadastrado no banco de dados com base no ID do jogo."
         )
-def delete_game(game_id: int, db: Session = Depends(get_db)):
-    deleted = game_service.delete_game(db=db, game_id=game_id)
+def delete_game(game_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    deleted = game_service.delete_game(db=db, game_id=game_id, owner=current_user)
 
     if not deleted:
         raise HTTPException(

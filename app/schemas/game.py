@@ -8,7 +8,8 @@ class GameBase(BaseModel):
     platform: str
 
 class GameCreate(GameBase):
-    pass
+    title: str
+    platform: str
 
 class GameUpdate(BaseModel):
     platform: Optional[str] = None
