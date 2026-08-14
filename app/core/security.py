@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta, UTC
 from typing import Optional
 
-from jose import jwt, JWTError
 from fastapi import HTTPException, status
+from jose import jwt, JWTError
 from passlib.context import CryptContext
+
 
 SECRET_KEY = "COLOQUE_UMA_CHAVE_BEM_GRANDE_AQUI"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
@@ -29,12 +31,13 @@ def create_access_token(
         )
 
     to_encode.update({"exp": expire})
-    
+
     return jwt.encode(
-    to_encode,
-    SECRET_KEY,
-    algorithm=ALGORITHM
-)
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
 
 def verify_access_token(token: str):
     try:
@@ -60,11 +63,15 @@ def verify_access_token(token: str):
             detail="Token inválido."
         )
 
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(
+    plain_password: str,
+    hashed_password: str
+) -> bool:
     return pwd_context.verify(
         plain_password,
         hashed_password

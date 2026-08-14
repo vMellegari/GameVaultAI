@@ -198,3 +198,16 @@ def delete_game(game_id: int, db: Session = Depends(get_db), current_user: User 
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Jogo não encontrado."
         )
+
+@router.get("/auth-test")
+def auth_test(
+    current_user: User = Depends(get_current_user)
+):
+    return {
+        "message": "Autenticado com sucesso",
+        "username": current_user.username
+    }
+
+
+
+
