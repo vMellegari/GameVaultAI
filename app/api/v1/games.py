@@ -98,8 +98,8 @@ def get_game(game_id: int, db: Session = Depends(get_db), current_user: User = D
         summary="Importar um jogo da RAWG",
         description="Permite importar um jogo da API da RAWG para o banco de dados com base no ID da RAWG fornecido."
         )
-def import_game(rawg_id: int, db: Session = Depends(get_db)):
-    return game_service.import_game_from_rawg(db=db, rawg_id=rawg_id)
+def import_game(rawg_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return game_service.import_game_from_rawg(db=db, rawg_id=rawg_id, owner=current_user)
 
 @router.post(
         "/games/{game_id}/refresh",
@@ -107,8 +107,8 @@ def import_game(rawg_id: int, db: Session = Depends(get_db)):
         summary="Atualizar informações de um jogo com dados da RAWG",
         description="Permite atualizar as informações de um jogo cadastrado no banco de dados com base no ID do jogo com dados da RAWG."
         )
-def refresh_game(game_id: int, db: Session = Depends(get_db)):
-    game = game_service.refresh_game_from_rawg(db=db, game_id=game_id)
+def refresh_game(game_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    game = game_service.refresh_game_from_rawg(db=db, game_id=game_id, owner=current_user)
 
     if not game:
         raise HTTPException(

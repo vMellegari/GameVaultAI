@@ -78,21 +78,28 @@ def apply_rawg_data(game: Game, game_details: RawgGameDetails):
     game.genres = game_details.genres
     game.metacritic_score = game_details.metacritic_score
 
-def import_game_from_rawg(db: Session, rawg_id: int):
+def import_game_from_rawg(
+    db: Session,
+    rawg_id: int,
+    owner: User
+):
     """Importa um jogo com os dados da RAWG para o banco de dados."""
+
     game_details = get_game_details(rawg_id)
 
     if not game_details:
         return None
-    
+
     existing_game = db.query(Game).filter(
-        Game.rawg_id == rawg_id
+        Game.rawg_id == rawg_id,
+        Game.owner_id == owner.id
     ).first()
 
     if existing_game:
         return existing_game
-    
+
     db_game = Game(
+        owner_id=owner.id,
         status=GameStatus.BACKLOG
     )
 
@@ -104,9 +111,18 @@ def import_game_from_rawg(db: Session, rawg_id: int):
 
     return db_game
 
-def refresh_game_from_rawg(db: Session, game_id: int):
+def refresh_game_from_rawg(
+    db: Session,
+    game_id: int,
+    owner: User
+):
     """Atualiza um jogo do banco utilizando os dados mais recentes da RAWG."""
-    db_game = get_game_by_id(db, game_id)
+
+    db_game = get_game_by_id(
+        db=db,
+        game_id=game_id,
+        owner=owner
+    )
 
     if not db_game:
         return None
