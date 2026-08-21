@@ -1,5 +1,6 @@
-def test_list_games(client):
-    response = client.get("/games")
+def test_list_games(client, auth_headers):
+
+    response = client.get("/games", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -15,7 +16,7 @@ def test_create_game(create_game):
     assert game["favorite"] is False
     assert game["id"] > 0
 
-def test_delete_game(client, create_game):
+def test_delete_game(client, create_game, auth_headers):
     # Cria um jogo
     game = create_game(
         title="The Witcher 3",
@@ -25,12 +26,12 @@ def test_delete_game(client, create_game):
     game_id = game["id"]
 
     # Deleta o jogo
-    response = client.delete(f"/games/{game_id}")
+    response = client.delete(f"/games/{game_id}", headers=auth_headers)
 
     assert response.status_code == 204
 
     # Tenta buscar o jogo deletado
-    response = client.get(f"/games/{game_id}")
+    response = client.get(f"/games/{game_id}", headers=auth_headers)
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Jogo não encontrado."

@@ -1,4 +1,4 @@
-def test_update_game_status(client, create_game):
+def test_update_game_status(client, create_game, auth_headers):
     # Cria um jogo
     game = create_game(
         title="Celeste",
@@ -10,7 +10,8 @@ def test_update_game_status(client, create_game):
         f"/games/{game['id']}",
         json={
             "status": "PLAYING"
-        }
+        },
+        headers=auth_headers
     )
 
     assert response.status_code == 200
@@ -21,7 +22,7 @@ def test_update_game_status(client, create_game):
     assert updated_game["title"] == "Celeste"
     assert updated_game["platform"] == "PC"
 
-def test_toggle_favorite(client, create_game):
+def test_toggle_favorite(client, create_game, auth_headers):
     # Cria um jogo
     game = create_game(
         title="Hollow Knight",
@@ -32,18 +33,18 @@ def test_toggle_favorite(client, create_game):
     assert game["favorite"] is False
 
     # Marca como favorito
-    response = client.patch(f"/games/{game['id']}/toggle-favorite")
+    response = client.patch(f"/games/{game['id']}/toggle-favorite", headers=auth_headers)
     assert response.status_code == 200
     updated_game = response.json()
     assert updated_game["favorite"] is True
 
     # Desmarca como favorito
-    response = client.patch(f"/games/{game['id']}/toggle-favorite")
+    response = client.patch(f"/games/{game['id']}/toggle-favorite", headers=auth_headers)
     assert response.status_code == 200
     updated_game = response.json()
     assert updated_game["favorite"] is False
 
-def test_update_hours_played_and_rating(client, create_game):
+def test_update_hours_played_and_rating(client, create_game, auth_headers):
     # Cria um jogo
     game = create_game(
         title="Game X",
@@ -56,7 +57,8 @@ def test_update_hours_played_and_rating(client, create_game):
         json={
             "hours_played": 50,
             "personal_rating": 8.5
-        }
+        },
+        headers=auth_headers
     )
 
     assert response.status_code == 200
@@ -66,7 +68,7 @@ def test_update_hours_played_and_rating(client, create_game):
     assert updated_game["hours_played"] == 50
     assert updated_game["personal_rating"] == 8.5
 
-def test_update_notes(client, create_game):
+def test_update_notes(client, create_game, auth_headers):
     # Cria um jogo
     game = create_game(
         title="Game Y",
@@ -79,7 +81,8 @@ def test_update_notes(client, create_game):
         json={
             "title": "Game Y",
             "platform": "PC"
-        }
+        },
+        headers=auth_headers
     )
 
     game_id = response.json()["id"]
@@ -89,7 +92,8 @@ def test_update_notes(client, create_game):
         f"/games/{game_id}",
         json={
             "notes": "Isso é uma nota de Teste."
-        }
+        },
+        headers=auth_headers
     )
 
     assert response.status_code == 200
@@ -98,7 +102,7 @@ def test_update_notes(client, create_game):
 
     assert updated_game["notes"] == "Isso é uma nota de Teste."
 
-def test_update_multiple_fields(client, create_game):
+def test_update_multiple_fields(client, create_game, auth_headers):
     # Cria um jogo
     game = create_game(
         title="Game Z",
@@ -110,7 +114,8 @@ def test_update_multiple_fields(client, create_game):
         f"/games/{game['id']}",
         json={
             "platform": "PC"
-        }
+        },
+        headers=auth_headers
     )
     assert response.status_code == 200
 
@@ -125,7 +130,8 @@ def test_update_multiple_fields(client, create_game):
             "personal_rating": 9.0,
             "notes": "Jogo finalizado com sucesso.",
             "favorite": True
-        }
+        },
+        headers=auth_headers
     )
 
     assert response.status_code == 200

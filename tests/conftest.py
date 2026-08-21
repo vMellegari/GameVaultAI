@@ -44,7 +44,7 @@ def clean_database():
     Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture
-def create_game(client):
+def create_game(client, auth_headers):
     def _create_game(
         title="Test Game",
         platform="PC",
@@ -56,10 +56,73 @@ def create_game(client):
             **kwargs
         }
 
-        response = client.post("/games", json=data)
+        response = client.post("/games", json=data, headers=auth_headers)
 
         assert response.status_code == 201, response.text
 
         return response.json()
 
     return _create_game
+
+@pytest.fixture
+def auth_headers(client):
+    # Cria um usuário para os testes
+    user_data = {
+        "username": "testuser",
+        "email": "testuser@email.com",
+        "password": "123456"
+    }
+
+    response = client.post(
+        "/users",
+        json=user_data
+    )
+
+    assert response.status_code == 201, response.text
+
+    # Faz login para obter o JWT
+    response = client.post(
+        "/login",
+        json={
+            "username": user_data["username"],
+            "password": user_data["password"]
+        }
+    )
+
+    assert response.status_code == 200, response.text
+
+    token = response.json()["access_token"]
+
+    return {
+        "Authorization": f"Bearer {token}"
+    }
+@pytest.fixture
+def second_auth_headers(client):
+    user_data = {
+        "username": "testuser2",
+        "email": "testuser2@email.com",
+        "password": "123456"
+    }
+
+    response = client.post(
+        "/users",
+        json=user_data
+    )
+
+    assert response.status_code == 201, response.text
+
+    response = client.post(
+        "/login",
+        json={
+            "username": user_data["username"],
+            "password": user_data["password"]
+        }
+    )
+
+    assert response.status_code == 200, response.text
+
+    token = response.json()["access_token"]
+
+    return {
+        "Authorization": f"Bearer {token}"
+    }

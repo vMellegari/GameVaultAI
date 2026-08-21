@@ -1,4 +1,4 @@
-def test_filter_games_by_status(client, create_game):
+def test_filter_games_by_status(client, create_game, auth_headers):
     # Cria o primeiro jogo
     game = create_game(
         title="Hades",
@@ -18,12 +18,13 @@ def test_filter_games_by_status(client, create_game):
         f"/games/{game_id}",
         json={
             "status": "PLAYING"
-        }
+        },
+        headers=auth_headers
     )
     assert response.status_code == 200
 
     # Busca somente jogos PLAYING
-    response = client.get("/games?status=PLAYING")
+    response = client.get("/games?status=PLAYING", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -33,7 +34,7 @@ def test_filter_games_by_status(client, create_game):
     assert games[0]["title"] == "Hades"
     assert games[0]["status"] == "PLAYING"
 
-def test_filter_games_by_platform(client, create_game):
+def test_filter_games_by_platform(client, create_game, auth_headers):
     # Cria jogos em diferentes plataformas
     game1 = create_game(
         title="Game A",
@@ -49,7 +50,7 @@ def test_filter_games_by_platform(client, create_game):
     )
 
     # Filtra por plataforma PC
-    response = client.get("/games?platform=PC")
+    response = client.get("/games?platform=PC", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -58,7 +59,7 @@ def test_filter_games_by_platform(client, create_game):
     assert len(games) == 2
     assert all(game["platform"] == "PC" for game in games)
 
-def test_filter_games_by_title(client, create_game):
+def test_filter_games_by_title(client, create_game, auth_headers):
     # Cria jogos com diferentes títulos
     game1 = create_game(
         title="The Legend of Zelda: Breath of the Wild",
@@ -74,7 +75,7 @@ def test_filter_games_by_title(client, create_game):
     )
 
     # Filtra por título contendo 'Zelda'
-    response = client.get("/games?title=Zelda")
+    response = client.get("/games?title=Zelda", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -83,7 +84,7 @@ def test_filter_games_by_title(client, create_game):
     assert len(games) == 2
     assert all("Zelda" in game["title"] for game in games)
 
-def test_filter_games_by_favorite(client, create_game):
+def test_filter_games_by_favorite(client, create_game, auth_headers):
     # Cria jogos
     game1 = create_game(
         title="Game 1",
@@ -95,11 +96,11 @@ def test_filter_games_by_favorite(client, create_game):
     )
 
     # Marca o primeiro jogo como favorito
-    response = client.patch(f"/games/{game1['id']}/toggle-favorite")
+    response = client.patch(f"/games/{game1['id']}/toggle-favorite", headers=auth_headers)
     assert response.status_code == 200
 
     # Filtra por jogos favoritos
-    response = client.get("/games?favorite=true")
+    response = client.get("/games?favorite=true", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -108,7 +109,7 @@ def test_filter_games_by_favorite(client, create_game):
     assert len(games) == 1
     assert games[0]["id"] == game1["id"]
 
-def test_sort_games_by_title(client, create_game):
+def test_sort_games_by_title(client, create_game, auth_headers):
     # Cria jogos com diferentes títulos
     game1 = create_game(
         title="Zelda",
@@ -124,7 +125,7 @@ def test_sort_games_by_title(client, create_game):
     )
 
     # Ordena por título ascendente
-    response = client.get("/games?sort_by=title&order=asc")
+    response = client.get("/games?sort_by=title&order=asc", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -133,7 +134,7 @@ def test_sort_games_by_title(client, create_game):
     titles = [game["title"] for game in games]
     assert titles == sorted(titles)
 
-def test_pagination(client, create_game):
+def test_pagination(client, create_game, auth_headers):
     # Cria 15 jogos
     for i in range(15):
         create_game(
@@ -142,13 +143,13 @@ def test_pagination(client, create_game):
         )
 
     # Pega a primeira página com limite de 10
-    response = client.get("/games?page=1&limit=10")
+    response = client.get("/games?page=1&limit=10", headers=auth_headers)
     assert response.status_code == 200
     games_page_1 = response.json()
     assert len(games_page_1) == 10
 
     # Pega a segunda página com limite de 10
-    response = client.get("/games?page=2&limit=10")
+    response = client.get("/games?page=2&limit=10", headers=auth_headers)
     assert response.status_code == 200
     games_page_2 = response.json()
     assert len(games_page_2) == 5  # Restante dos jogos

@@ -1,4 +1,4 @@
-def test_get_statistics(client, create_game):
+def test_get_statistics(client, create_game, auth_headers):
     # Cria três jogos
     game1 = create_game(
         title="Game 1",
@@ -22,7 +22,8 @@ def test_get_statistics(client, create_game):
             "status": "PLAYING",
             "hours_played": 30,
             "personal_rating": 9.5
-        }
+        },
+        headers=auth_headers
     )
     assert response.status_code == 200
 
@@ -33,19 +34,21 @@ def test_get_statistics(client, create_game):
             "status": "COMPLETED",
             "hours_played": 20,
             "personal_rating": 8.5
-        }
+        },
+        headers=auth_headers
     )
+
     assert response.status_code == 200
 
     # Marca favoritos
-    response = client.patch(f"/games/{game1['id']}/toggle-favorite")
+    response = client.patch(f"/games/{game1['id']}/toggle-favorite", headers=auth_headers)
     assert response.status_code == 200
 
-    response = client.patch(f"/games/{game3['id']}/toggle-favorite")
+    response = client.patch(f"/games/{game3['id']}/toggle-favorite", headers=auth_headers)
     assert response.status_code == 200
 
     # Busca estatísticas
-    response = client.get("/games/stats")
+    response = client.get("/games/stats", headers=auth_headers)
 
     assert response.status_code == 200
 
@@ -61,8 +64,8 @@ def test_get_statistics(client, create_game):
     assert stats["total_hours"] == 50
     assert stats["average_rating"] == 9.0
 
-def test_get_statistics_empty_database(client):
-    response = client.get("/games/stats")
+def test_get_statistics_empty_database(client, auth_headers):
+    response = client.get("/games/stats", headers=auth_headers)
 
     assert response.status_code == 200
 
