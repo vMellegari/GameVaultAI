@@ -4,11 +4,12 @@ from typing import Optional
 from fastapi import HTTPException, status
 from jose import jwt, JWTError
 from passlib.context import CryptContext
+from app.core.config import settings
 
 
-SECRET_KEY = "COLOQUE_UMA_CHAVE_BEM_GRANDE_AQUI"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 pwd_context = CryptContext(

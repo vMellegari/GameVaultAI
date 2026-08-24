@@ -12,12 +12,15 @@ __pycache__/
 
 # Environment variables
 .env
+.env.*
+!.env.example
 
 # VSCode
 .vscode/
 
 # Pytest
 .pytest_cache/
+test.db
 
 # Coverage
 .coverage

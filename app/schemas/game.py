@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 from typing import Optional
+from app.models.enums import GameStatus
 
 class GameBase(BaseModel):
     title: str
@@ -13,7 +14,7 @@ class GameCreate(GameBase):
 
 class GameUpdate(BaseModel):
     platform: Optional[str] = None
-    status: Optional[str] = None
+    status: Optional[GameStatus] = None
     personal_rating: Optional[float] = Field(default=None, ge=0, le=10)
     hours_played: Optional[float] = Field(default=None, ge=0)
     notes: Optional[str] = None

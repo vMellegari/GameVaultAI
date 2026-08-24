@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -52,8 +52,8 @@ def list_games(
     title: str |None = None,
     favorite: bool | None = None,
     sort_by: SortField | None = None,
-    page: int = 1,
-    limit: int = 10,
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=10, ge=1, le=100),
 ):
 
     return game_service.get_all_games(
@@ -99,7 +99,19 @@ def get_game(game_id: int, db: Session = Depends(get_db), current_user: User = D
         description="Permite importar um jogo da API da RAWG para o banco de dados com base no ID da RAWG fornecido."
         )
 def import_game(rawg_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return game_service.import_game_from_rawg(db=db, rawg_id=rawg_id, owner=current_user)
+    game = game_service.import_game_from_rawg(
+        db=db,
+        rawg_id=rawg_id,
+        owner=current_user
+    )
+
+    if not game:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Jogo não encontrado na RAWG."
+        )
+
+    return game
 
 @router.post(
         "/games/{game_id}/refresh",

@@ -54,3 +54,96 @@ def test_user_cannot_access_another_users_game(
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Jogo não encontrado."
+
+def test_user_cannot_update_another_users_game(
+    client,
+    create_game,
+    second_auth_headers
+):
+    game = create_game(
+        title="The Witcher 3",
+        platform="PC"
+    )
+
+    response = client.patch(
+        f"/games/{game['id']}",
+        json={
+            "status": "PLAYING"
+        },
+        headers=second_auth_headers
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Jogo não encontrado."
+
+def test_user_cannot_delete_another_users_game(
+    client,
+    create_game,
+    second_auth_headers
+):
+    game = create_game(
+        title="The Witcher 3",
+        platform="PC"
+    )
+
+    response = client.delete(
+        f"/games/{game['id']}",
+        headers=second_auth_headers
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Jogo não encontrado."
+
+def test_user_cannot_toggle_favorite_another_users_game(
+    client,
+    create_game,
+    second_auth_headers
+):
+    game = create_game(
+        title="The Witcher 3",
+        platform="PC"
+    )
+
+    response = client.patch(
+        f"/games/{game['id']}/toggle-favorite",
+        headers=second_auth_headers
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Jogo não encontrado."
+
+def test_user_cannot_start_another_users_game(
+    client,
+    create_game,
+    second_auth_headers
+):
+    game = create_game(
+        title="The Witcher 3",
+        platform="PC"
+    )
+
+    response = client.patch(
+        f"/games/{game['id']}/start",
+        headers=second_auth_headers
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Jogo não encontrado."
+
+def test_user_cannot_complete_another_users_game(
+    client,
+    create_game,
+    second_auth_headers
+):
+    game = create_game(
+        title="The Witcher 3",
+        platform="PC"
+    )
+
+    response = client.patch(
+        f"/games/{game['id']}/complete",
+        headers=second_auth_headers
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Jogo não encontrado."

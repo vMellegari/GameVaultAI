@@ -153,3 +153,41 @@ def test_pagination(client, create_game, auth_headers):
     assert response.status_code == 200
     games_page_2 = response.json()
     assert len(games_page_2) == 5  # Restante dos jogos
+
+def test_filter_games_only_returns_current_users_games(
+    client,
+    create_game,
+    auth_headers,
+    second_auth_headers
+):
+    # Jogo pertencente ao primeiro usuário
+    game_user_1 = create_game(
+        title="Game User 1",
+        platform="PC"
+    )
+
+    # Cria um jogo pertencente ao segundo usuário
+    response = client.post(
+        "/games",
+        json={
+            "title": "Game User 2",
+            "platform": "PC"
+        },
+        headers=second_auth_headers
+    )
+
+    assert response.status_code == 201
+
+    # Primeiro usuário filtra por PC
+    response = client.get(
+        "/games?platform=PC",
+        headers=auth_headers
+    )
+
+    assert response.status_code == 200
+
+    games = response.json()
+
+    assert len(games) == 1
+    assert games[0]["id"] == game_user_1["id"]
+    assert games[0]["title"] == "Game User 1"
