@@ -1,9 +1,17 @@
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
-DATABASE_URL = settings.DATABASE_URL
+load_dotenv()
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///./gamevault.db"
+)
 
 engine = create_engine(
     DATABASE_URL,
