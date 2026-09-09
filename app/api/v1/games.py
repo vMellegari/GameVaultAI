@@ -35,6 +35,14 @@ def create_game(
         description="Permite pesquisar jogos na API da RAWG com base no titulo do jogo."
         )
 def search_games(query: str):
+    query = query.strip()
+
+    if len(query) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A busca deve conter pelo menos 2 caracteres."
+        )
+
     return rawg_service.search_games(query)
 
 

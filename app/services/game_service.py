@@ -90,6 +90,7 @@ def import_game_from_rawg(
     if not game_details:
         return None
 
+    # Verifica se o usuário já possui esse jogo importado pela RAWG
     existing_game = db.query(Game).filter(
         Game.rawg_id == rawg_id,
         Game.owner_id == owner.id
@@ -98,6 +99,24 @@ def import_game_from_rawg(
     if existing_game:
         return existing_game
 
+    # Verifica se o usuário já cadastrou manualmente
+    # um jogo com o mesmo título
+    manual_game = db.query(Game).filter(
+        Game.owner_id == owner.id,
+        Game.rawg_id.is_(None),
+        Game.title.ilike(game_details.title)
+    ).first()
+
+    if manual_game:
+        apply_rawg_data(manual_game, game_details)
+
+        db.commit()
+        db.refresh(manual_game)
+
+        return manual_game
+
+    # Caso não exista nenhum jogo correspondente,
+    # cria um novo registro
     db_game = Game(
         owner_id=owner.id,
         status=GameStatus.BACKLOG
@@ -110,7 +129,6 @@ def import_game_from_rawg(
     db.refresh(db_game)
 
     return db_game
-
 def refresh_game_from_rawg(
     db: Session,
     game_id: int,
