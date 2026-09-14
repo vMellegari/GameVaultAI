@@ -1,24 +1,89 @@
+import { useState } from 'react'
+import { completeGame, startGame, toggleFavorite } from '../services/api'
+
 interface GameCardProps {
+  id: number
   title: string
   platform: string
   status: string
-  rating?: number
+  rating?: number | null
   favorite?: boolean
+  coverImage?: string | null
+  onUpdated: () => void
+  onDetails: (gameId: number) => void
 }
 
 function GameCard({
+  id,
   title,
   platform,
   status,
   rating,
   favorite = false,
+  coverImage,
+  onUpdated,
+  onDetails,
 }: GameCardProps) {
+  const [actionLoading, setActionLoading] = useState(false)
+
+  async function handleStart() {
+    setActionLoading(true)
+
+    try {
+      await startGame(id)
+      onUpdated()
+    } catch {
+      // O estado da biblioteca será atualizado pelo App.
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleComplete() {
+    setActionLoading(true)
+
+    try {
+      await completeGame(id)
+      onUpdated()
+    } catch {
+      // O estado da biblioteca será atualizado pelo App.
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleFavorite() {
+    setActionLoading(true)
+
+    try {
+      await toggleFavorite(id)
+      onUpdated()
+    } catch {
+      // O estado da biblioteca será atualizado pelo App.
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   return (
     <article className="game-card">
       <div className="game-cover">
-        <span className="game-cover-placeholder">🎮</span>
+        {coverImage ? (
+          <img src={coverImage} alt={`Capa de ${title}`} />
+        ) : (
+          <span className="game-cover-placeholder">🎮</span>
+        )}
 
-        {favorite && <span className="favorite-badge">★</span>}
+        <button
+          className={`favorite-badge ${favorite ? 'favorite-active' : ''}`}
+          onClick={handleFavorite}
+          disabled={actionLoading}
+          aria-label={
+            favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+          }
+        >
+          {favorite ? '★' : '☆'}
+        </button>
       </div>
 
       <div className="game-info">
@@ -29,8 +94,42 @@ function GameCard({
         <div className="game-meta">
           <span className="game-status">{status}</span>
 
-          {rating !== undefined && (
+          {rating !== null && rating !== undefined && (
             <span className="game-rating">★ {rating}/10</span>
+          )}
+        </div>
+
+        <div className="game-actions">
+          <button
+            className="game-action-button"
+            onClick={() => onDetails(id)}
+            disabled={actionLoading}
+          >
+            Ver detalhes
+          </button>
+
+          {status === 'BACKLOG' && (
+            <button
+              className="game-action-button"
+              onClick={handleStart}
+              disabled={actionLoading}
+            >
+              ▶ Iniciar
+            </button>
+          )}
+
+          {status === 'PLAYING' && (
+            <button
+              className="game-action-button"
+              onClick={handleComplete}
+              disabled={actionLoading}
+            >
+              ✓ Concluir
+            </button>
+          )}
+
+          {status === 'COMPLETED' && (
+            <span className="completed-label">✓ Jogo concluído</span>
           )}
         </div>
       </div>

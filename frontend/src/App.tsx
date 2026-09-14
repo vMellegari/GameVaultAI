@@ -1,46 +1,142 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Login from './components/Login'
 import GameCard from './components/GameCard'
+import GameSearch from './components/GameSearch'
+import GameDetails from './components/GameDetails'
+import { getGames } from './services/api'
 import './App.css'
+
+interface Game {
+  id: number
+  title: string
+  platform: string
+  status: string
+  personal_rating: number | null
+  hours_played: number
+  favorite: boolean
+  cover_image: string | null
+}
+
+type Filter = 'all' | 'backlog' | 'playing' | 'completed' | 'favorites'
 
 function App() {
   const [authenticated, setAuthenticated] = useState(
     Boolean(localStorage.getItem('access_token')),
   )
 
-  const games = [
-    {
-      title: 'The Witcher 3',
-      platform: 'PC',
-      status: 'Jogando',
-      rating: 9.5,
-      favorite: true,
+  const [games, setGames] = useState<Game[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showSearch, setShowSearch] = useState(false)
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(null)
+  const [activeFilter, setActiveFilter] = useState<Filter>('all')
+
+  const loadGames = useCallback(
+    async (filter: Filter = activeFilter) => {
+      setLoading(true)
+      setError('')
+
+      try {
+        let status: string | undefined
+        let favorite: boolean | undefined
+
+        if (filter === 'backlog') {
+          status = 'backlog'
+        }
+
+        if (filter === 'playing') {
+          status = 'playing'
+        }
+
+        if (filter === 'completed') {
+          status = 'completed'
+        }
+
+        if (filter === 'favorites') {
+          favorite = true
+        }
+
+        const data = await getGames(status, favorite)
+
+        setGames(data)
+      } catch (err) {
+        if (err instanceof Error && err.message === 'Sessão expirada.') {
+          setAuthenticated(false)
+          return
+        }
+
+        setError('Não foi possível carregar sua biblioteca.')
+      } finally {
+        setLoading(false)
+      }
     },
-    {
-      title: 'Elden Ring',
-      platform: 'PC',
-      status: 'Backlog',
-      rating: 9,
-      favorite: true,
-    },
-    {
-      title: 'Cyberpunk 2077',
-      platform: 'PC',
-      status: 'Backlog',
-      rating: 8.5,
-      favorite: false,
-    },
-    {
-      title: 'Baldur’s Gate 3',
-      platform: 'PC',
-      status: 'Concluído',
-      rating: 10,
-      favorite: true,
-    },
-  ]
+    [activeFilter],
+  )
+
+  useEffect(() => {
+    if (authenticated) {
+      const timeoutId = window.setTimeout(() => {
+        void loadGames()
+      }, 0)
+
+      return () => window.clearTimeout(timeoutId)
+    }
+  }, [authenticated, activeFilter, loadGames])
+
+  function handleFilterChange(filter: Filter) {
+    setActiveFilter(filter)
+  }
 
   if (!authenticated) {
     return <Login onLogin={() => setAuthenticated(true)} />
+  }
+
+  if (selectedGameId !== null) {
+    return (
+      <div className="app">
+        <header className="topbar">
+          <div className="logo">
+            <span>🎮</span>
+            <h1>GameVault AI</h1>
+          </div>
+
+          <div className="topbar-actions">
+            <div className="user-avatar">V</div>
+          </div>
+        </header>
+
+        <main className="content details-content">
+          <GameDetails
+            gameId={selectedGameId}
+            onClose={() => setSelectedGameId(null)}
+          />
+        </main>
+      </div>
+    )
+  }
+
+  if (showSearch) {
+    return (
+      <div className="app">
+        <header className="topbar">
+          <div className="logo">
+            <span>🎮</span>
+            <h1>GameVault AI</h1>
+          </div>
+
+          <div className="topbar-actions">
+            <div className="user-avatar">V</div>
+          </div>
+        </header>
+
+        <main className="content search-content">
+          <GameSearch
+            onClose={() => setShowSearch(false)}
+            onImported={() => loadGames()}
+          />
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -52,7 +148,9 @@ function App() {
         </div>
 
         <div className="topbar-actions">
-          <button className="search-button">🔍 Buscar jogos</button>
+          <button className="search-button" onClick={() => setShowSearch(true)}>
+            🔍 Buscar jogos
+          </button>
 
           <div className="user-avatar">V</div>
         </div>
@@ -73,36 +171,103 @@ function App() {
           <section className="page-header">
             <div>
               <h2>Minha biblioteca</h2>
+
               <p>Gerencie seus jogos e acompanhe seu progresso.</p>
             </div>
 
-            <button className="add-game-button">+ Adicionar jogo</button>
+            <button
+              className="add-game-button"
+              onClick={() => setShowSearch(true)}
+            >
+              + Adicionar jogo
+            </button>
+          </section>
+
+          <section className="library-summary">
+            <span>
+              {games.length} {games.length === 1 ? 'jogo' : 'jogos'}
+            </span>
           </section>
 
           <section className="filters">
-            <button className="filter active">Todos</button>
+            <button
+              className={`filter ${activeFilter === 'all' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('all')}
+            >
+              Todos
+            </button>
 
-            <button className="filter">Backlog</button>
+            <button
+              className={`filter ${activeFilter === 'backlog' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('backlog')}
+            >
+              Backlog
+            </button>
 
-            <button className="filter">Jogando</button>
+            <button
+              className={`filter ${activeFilter === 'playing' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('playing')}
+            >
+              Jogando
+            </button>
 
-            <button className="filter">Concluídos</button>
+            <button
+              className={`filter ${
+                activeFilter === 'completed' ? 'active' : ''
+              }`}
+              onClick={() => handleFilterChange('completed')}
+            >
+              Concluídos
+            </button>
 
-            <button className="filter">Favoritos</button>
+            <button
+              className={`filter ${
+                activeFilter === 'favorites' ? 'active' : ''
+              }`}
+              onClick={() => handleFilterChange('favorites')}
+            >
+              Favoritos
+            </button>
           </section>
 
-          <section className="games-grid">
-            {games.map((game) => (
-              <GameCard
-                key={game.title}
-                title={game.title}
-                platform={game.platform}
-                status={game.status}
-                rating={game.rating}
-                favorite={game.favorite}
-              />
-            ))}
-          </section>
+          {loading && (
+            <div className="library-message">
+              <p>Carregando sua biblioteca...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="library-message error">
+              <p>{error}</p>
+            </div>
+          )}
+
+          {!loading && !error && games.length === 0 && (
+            <div className="library-message">
+              <h3>Nenhum jogo encontrado</h3>
+
+              <p>Não há jogos correspondentes a este filtro.</p>
+            </div>
+          )}
+
+          {!loading && !error && games.length > 0 && (
+            <section className="games-grid">
+              {games.map((game) => (
+                <GameCard
+                  key={game.id}
+                  id={game.id}
+                  title={game.title}
+                  platform={game.platform}
+                  status={game.status}
+                  rating={game.personal_rating}
+                  favorite={game.favorite}
+                  coverImage={game.cover_image}
+                  onUpdated={loadGames}
+                  onDetails={(gameId) => setSelectedGameId(gameId)}
+                />
+              ))}
+            </section>
+          )}
         </main>
       </div>
     </div>

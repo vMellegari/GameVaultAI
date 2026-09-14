@@ -49,6 +49,13 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
+Para iniciar a API e o frontend ao mesmo tempo, a partir da raiz do projeto:
+
+```powershell
+npm install
+npm run dev
+```
+
 A documentação interativa fica disponível em
 `http://127.0.0.1:8000/docs`.
 
