@@ -3,6 +3,7 @@ import Login from './components/Login'
 import GameCard from './components/GameCard'
 import GameSearch from './components/GameSearch'
 import GameDetails from './components/GameDetails'
+import Statistics from './components/Statistics'
 import { getGames } from './services/api'
 import './App.css'
 
@@ -27,8 +28,10 @@ function App() {
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [actionMessage, setActionMessage] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null)
+  const [showStatistics, setShowStatistics] = useState(false)
   const [activeFilter, setActiveFilter] = useState<Filter>('all')
 
   const loadGames = useCallback(
@@ -73,6 +76,16 @@ function App() {
     [activeFilter],
   )
 
+  function handleGameUpdated(message: string) {
+    setActionMessage(message)
+
+    loadGames()
+
+    setTimeout(() => {
+      setActionMessage('')
+    }, 2500)
+  }
+
   useEffect(() => {
     if (authenticated) {
       const timeoutId = window.setTimeout(() => {
@@ -109,7 +122,29 @@ function App() {
           <GameDetails
             gameId={selectedGameId}
             onClose={() => setSelectedGameId(null)}
+            onDeleted={() => loadGames()}
           />
+        </main>
+      </div>
+    )
+  }
+
+  if (showStatistics) {
+    return (
+      <div className="app">
+        <header className="topbar">
+          <div className="logo">
+            <span>🎮</span>
+            <h1>GameVault AI</h1>
+          </div>
+
+          <div className="topbar-actions">
+            <div className="user-avatar">V</div>
+          </div>
+        </header>
+
+        <main className="content details-content">
+          <Statistics onClose={() => setShowStatistics(false)} />
         </main>
       </div>
     )
@@ -163,7 +198,12 @@ function App() {
 
             <button className="nav-item">⭐ Favoritos</button>
 
-            <button className="nav-item">📊 Estatísticas</button>
+            <button
+              className="nav-item"
+              onClick={() => setShowStatistics(true)}
+            >
+              📊 Estatísticas
+            </button>
           </nav>
         </aside>
 
@@ -230,6 +270,10 @@ function App() {
             </button>
           </section>
 
+          {actionMessage && (
+            <div className="action-message">{actionMessage}</div>
+          )}
+
           {loading && (
             <div className="library-message">
               <p>Carregando sua biblioteca...</p>
@@ -245,7 +289,6 @@ function App() {
           {!loading && !error && games.length === 0 && (
             <div className="library-message">
               <h3>Nenhum jogo encontrado</h3>
-
               <p>Não há jogos correspondentes a este filtro.</p>
             </div>
           )}
@@ -262,7 +305,7 @@ function App() {
                   rating={game.personal_rating}
                   favorite={game.favorite}
                   coverImage={game.cover_image}
-                  onUpdated={loadGames}
+                  onUpdated={handleGameUpdated}
                   onDetails={(gameId) => setSelectedGameId(gameId)}
                 />
               ))}

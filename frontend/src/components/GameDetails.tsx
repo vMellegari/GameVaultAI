@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getGame, updateGame } from '../services/api'
+import { deleteGame, getGame, updateGame } from '../services/api'
 
 interface Game {
   id: number
@@ -20,14 +20,17 @@ interface Game {
 interface GameDetailsProps {
   gameId: number
   onClose: () => void
+  onDeleted: () => void
 }
 
-function GameDetails({ gameId, onClose }: GameDetailsProps) {
+function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
   const [game, setGame] = useState<Game | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
   const [error, setError] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
 
   const [platform, setPlatform] = useState('')
   const [status, setStatus] = useState('')
@@ -105,6 +108,26 @@ function GameDetails({ gameId, onClose }: GameDetailsProps) {
 
     setEditing(false)
     setError('')
+  }
+
+  async function handleDelete() {
+    if (!game) {
+      return
+    }
+
+    setDeleting(true)
+    setError('')
+
+    try {
+      await deleteGame(game.id)
+      onDeleted()
+      onClose()
+    } catch {
+      setError('Não foi possível excluir o jogo.')
+    } finally {
+      setDeleting(false)
+      setShowDeleteConfirmation(false)
+    }
   }
 
   if (loading) {
@@ -307,14 +330,50 @@ function GameDetails({ gameId, onClose }: GameDetailsProps) {
                 </button>
               </>
             ) : (
-              <button
-                className="details-edit-button"
-                onClick={() => setEditing(true)}
-              >
-                ✎ Editar jogo
-              </button>
+              <>
+                <button
+                  className="details-edit-button"
+                  onClick={() => setEditing(true)}
+                >
+                  ✎ Editar jogo
+                </button>
+
+                <button
+                  className="details-delete-button"
+                  onClick={() => setShowDeleteConfirmation(true)}
+                >
+                  🗑 Excluir jogo
+                </button>
+              </>
             )}
           </div>
+          {showDeleteConfirmation && (
+            <div className="delete-confirmation">
+              <div>
+                <strong>Excluir este jogo?</strong>
+
+                <p>Essa ação não pode ser desfeita.</p>
+              </div>
+
+              <div className="delete-confirmation-actions">
+                <button
+                  className="details-cancel-button"
+                  onClick={() => setShowDeleteConfirmation(false)}
+                  disabled={deleting}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  className="details-delete-confirm-button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Excluindo...' : 'Sim, excluir'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </div>

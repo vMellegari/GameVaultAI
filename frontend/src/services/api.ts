@@ -192,3 +192,36 @@ export async function updateGame(
 
   return response.json()
 }
+
+export async function getGameStats() {
+  const response = await fetch(`${API_URL}/games/stats`, {
+    headers: getAuthHeaders(),
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+
+  if (!response.ok) {
+    throw new Error('Não foi possível carregar as estatísticas.')
+  }
+
+  return response.json()
+}
+
+export async function deleteGame(gameId: number) {
+  const response = await fetch(`${API_URL}/games/${gameId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+
+  if (!response.ok) {
+    throw new Error('Não foi possível excluir o jogo.')
+  }
+}
