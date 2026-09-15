@@ -100,6 +100,15 @@ function App() {
     setActiveFilter(filter)
   }
 
+  function handleLogout() {
+    localStorage.removeItem('access_token')
+    setAuthenticated(false)
+    setGames([])
+    setSelectedGameId(null)
+    setShowSearch(false)
+    setShowStatistics(false)
+  }
+
   if (!authenticated) {
     return <Login onLogin={() => setAuthenticated(true)} />
   }
@@ -188,6 +197,10 @@ function App() {
           </button>
 
           <div className="user-avatar">V</div>
+
+          <button className="logout-button" onClick={handleLogout}>
+            Sair
+          </button>
         </div>
       </header>
 

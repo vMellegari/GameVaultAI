@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+
 import { getGameStats } from '../services/api'
 
 interface GameStats {
@@ -67,7 +68,6 @@ function Statistics({ onClose }: StatisticsProps) {
       <div className="statistics-header">
         <div>
           <h2>Estatísticas</h2>
-
           <p>Acompanhe os números da sua biblioteca.</p>
         </div>
 
@@ -79,7 +79,6 @@ function Statistics({ onClose }: StatisticsProps) {
       <section className="statistics-grid">
         <article className="stat-card">
           <span className="stat-icon">🎮</span>
-
           <div>
             <strong>Total de jogos</strong>
             <span>{stats.total_games}</span>
@@ -88,7 +87,6 @@ function Statistics({ onClose }: StatisticsProps) {
 
         <article className="stat-card">
           <span className="stat-icon">📚</span>
-
           <div>
             <strong>Backlog</strong>
             <span>{stats.backlog}</span>
@@ -97,7 +95,6 @@ function Statistics({ onClose }: StatisticsProps) {
 
         <article className="stat-card">
           <span className="stat-icon">▶️</span>
-
           <div>
             <strong>Jogando</strong>
             <span>{stats.playing}</span>
@@ -106,7 +103,6 @@ function Statistics({ onClose }: StatisticsProps) {
 
         <article className="stat-card">
           <span className="stat-icon">✅</span>
-
           <div>
             <strong>Concluídos</strong>
             <span>{stats.completed}</span>
@@ -115,7 +111,6 @@ function Statistics({ onClose }: StatisticsProps) {
 
         <article className="stat-card">
           <span className="stat-icon">⭐</span>
-
           <div>
             <strong>Favoritos</strong>
             <span>{stats.favorite_games}</span>
@@ -124,7 +119,6 @@ function Statistics({ onClose }: StatisticsProps) {
 
         <article className="stat-card">
           <span className="stat-icon">⏱️</span>
-
           <div>
             <strong>Horas jogadas</strong>
             <span>{stats.total_hours}h</span>
@@ -133,10 +127,8 @@ function Statistics({ onClose }: StatisticsProps) {
 
         <article className="stat-card">
           <span className="stat-icon">🏆</span>
-
           <div>
             <strong>Média das avaliações</strong>
-
             <span>
               {stats.average_rating !== null
                 ? `${stats.average_rating}/10`
@@ -147,7 +139,6 @@ function Statistics({ onClose }: StatisticsProps) {
 
         <article className="stat-card">
           <span className="stat-icon">📌</span>
-
           <div>
             <strong>Wishlist</strong>
             <span>{stats.wishlist}</span>
@@ -156,12 +147,94 @@ function Statistics({ onClose }: StatisticsProps) {
 
         <article className="stat-card">
           <span className="stat-icon">🚫</span>
-
           <div>
             <strong>Abandonados</strong>
             <span>{stats.dropped}</span>
           </div>
         </article>
+      </section>
+
+      <section className="statistics-summary">
+        <div className="statistics-summary-header">
+          <h3>Resumo da biblioteca</h3>
+          <span>{stats.total_games} jogos</span>
+        </div>
+
+        <div className="statistics-status-list">
+          <div className="statistics-status-item">
+            <div>
+              <span>📚 Backlog</span>
+              <strong>
+                {stats.backlog} —{' '}
+                {stats.total_games > 0
+                  ? `${Math.round((stats.backlog / stats.total_games) * 100)}%`
+                  : '0%'}
+              </strong>
+            </div>
+
+            <div className="statistics-progress">
+              <div
+                className="statistics-progress-fill"
+                style={{
+                  width:
+                    stats.total_games > 0
+                      ? `${(stats.backlog / stats.total_games) * 100}%`
+                      : '0%',
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="statistics-status-item">
+            <div>
+              <span>▶️ Jogando</span>
+              <strong>
+                {stats.playing} —{' '}
+                {stats.total_games > 0
+                  ? `${Math.round((stats.playing / stats.total_games) * 100)}%`
+                  : '0%'}
+              </strong>
+            </div>
+
+            <div className="statistics-progress">
+              <div
+                className="statistics-progress-fill"
+                style={{
+                  width:
+                    stats.total_games > 0
+                      ? `${(stats.playing / stats.total_games) * 100}%`
+                      : '0%',
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="statistics-status-item">
+            <div>
+              <span>✅ Concluídos</span>
+              <strong>
+                {stats.completed} —{' '}
+                {stats.total_games > 0
+                  ? `${Math.round(
+                      (stats.completed / stats.total_games) * 100,
+                    )}%`
+                  : '0%'}
+              </strong>
+            </div>
+
+            <div className="statistics-progress">
+              <div
+                className="statistics-progress-fill"
+                style={{
+                  width:
+                    stats.total_games > 0
+                      ? `${(stats.completed / stats.total_games) * 100}%`
+                      : '0%',
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   )
