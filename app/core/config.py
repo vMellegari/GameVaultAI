@@ -16,6 +16,11 @@ class Settings:
         ""
     )
 
+    GEMINI_API_KEY = os.getenv(
+        "GEMINI_API_KEY",
+        ""
+    )
+
     SECRET_KEY = os.getenv("SECRET_KEY")
 
     if not SECRET_KEY:

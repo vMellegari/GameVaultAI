@@ -4,7 +4,8 @@ import GameCard from './components/GameCard'
 import GameSearch from './components/GameSearch'
 import GameDetails from './components/GameDetails'
 import Statistics from './components/Statistics'
-import { getGames } from './services/api'
+import { getGames, getRecommendations } from './services/api'
+import RecommendationList from './components/RecommendationList'
 import './App.css'
 
 interface Game {
@@ -32,6 +33,15 @@ function App() {
   const [showSearch, setShowSearch] = useState(false)
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null)
   const [showStatistics, setShowStatistics] = useState(false)
+  const [recommendations, setRecommendations] = useState<
+    {
+      title: string
+      genres: string[]
+      reason: string
+    }[]
+  >([])
+
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false)
   const [activeFilter, setActiveFilter] = useState<Filter>('all')
 
   const loadGames = useCallback(
@@ -84,6 +94,20 @@ function App() {
     setTimeout(() => {
       setActionMessage('')
     }, 2500)
+  }
+
+  async function handleRecommendations() {
+    try {
+      setLoadingRecommendations(true)
+
+      const data = await getRecommendations()
+
+      setRecommendations(data.recommendations)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoadingRecommendations(false)
+    }
   }
 
   useEffect(() => {
@@ -282,6 +306,18 @@ function App() {
               Favoritos
             </button>
           </section>
+
+          <div>
+            <button onClick={handleRecommendations}>
+              {loadingRecommendations
+                ? 'Analisando sua biblioteca...'
+                : '🤖 Recomendações com IA'}
+            </button>
+
+            {recommendations.length > 0 && (
+              <RecommendationList recommendations={recommendations} />
+            )}
+          </div>
 
           {actionMessage && (
             <div className="action-message">{actionMessage}</div>

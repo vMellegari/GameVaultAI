@@ -210,6 +210,23 @@ export async function getGameStats() {
   return response.json()
 }
 
+export async function getRecommendations() {
+  const response = await fetch(`${API_URL}/games/recommendations`, {
+    headers: getAuthHeaders(),
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+
+  if (!response.ok) {
+    throw new Error('Não foi possível carregar as recomendações.')
+  }
+
+  return response.json()
+}
+
 export async function deleteGame(gameId: number) {
   const response = await fetch(`${API_URL}/games/${gameId}`, {
     method: 'DELETE',

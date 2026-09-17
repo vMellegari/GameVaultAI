@@ -8,6 +8,7 @@ from app.schemas.game import GameCreate, GameUpdate
 from app.schemas.rawg import RawgGameDetails
 from app.services.rawg_service import get_game_details
 
+
 def create_game(db: Session, game_data: GameCreate, owner: User) -> Game:
     """Cria um novo jogo no banco de dados."""
     db_game = Game(
@@ -21,6 +22,7 @@ def create_game(db: Session, game_data: GameCreate, owner: User) -> Game:
     db.refresh(db_game)
     return db_game
 
+
 def get_all_games(
         db: Session,
         owner: User,
@@ -31,7 +33,7 @@ def get_all_games(
         favorite: bool | None = None,
         page: int = 1,
         limit: int = 10,
-        ):
+):
     """Retorna todos os jogos cadastrados."""
     query = db.query(Game).filter(Game.owner_id == owner.id)
 
@@ -56,9 +58,11 @@ def get_all_games(
 
     return query.all()
 
+
 def get_game_by_id(db: Session, game_id: int, owner: User) -> Game | None:
     """Busca um jogo específico pelo ID."""
     return db.query(Game).filter(Game.id == game_id, Game.owner_id == owner.id).first()
+
 
 def parse_release_date(released: str | None):
     if not released:
@@ -69,6 +73,7 @@ def parse_release_date(released: str | None):
         "%Y-%m-%d"
     ).date()
 
+
 def apply_rawg_data(game: Game, game_details: RawgGameDetails):
     game.title = game_details.title
     game.platform = game_details.platform
@@ -77,6 +82,7 @@ def apply_rawg_data(game: Game, game_details: RawgGameDetails):
     game.release_date = parse_release_date(game_details.released)
     game.genres = game_details.genres
     game.metacritic_score = game_details.metacritic_score
+
 
 def import_game_from_rawg(
     db: Session,
@@ -129,6 +135,8 @@ def import_game_from_rawg(
     db.refresh(db_game)
 
     return db_game
+
+
 def refresh_game_from_rawg(
     db: Session,
     game_id: int,
@@ -185,6 +193,7 @@ def update_game(db: Session, game_id: int, game_data: GameUpdate, owner: User) -
 
     return db_game
 
+
 def toggle_favorite(db: Session, game_id: int, owner: User) -> Game | None:
     """Alterna o estado de favorito de um jogo."""
     db_game = get_game_by_id(db=db, game_id=game_id, owner=owner)
@@ -198,6 +207,7 @@ def toggle_favorite(db: Session, game_id: int, owner: User) -> Game | None:
     db.refresh(db_game)
 
     return db_game
+
 
 def start_game(db: Session, game_id: int, owner: User) -> Game | None:
     """Marca um jogo como PLAYING."""
@@ -214,6 +224,7 @@ def start_game(db: Session, game_id: int, owner: User) -> Game | None:
 
     return db_game
 
+
 def complete_game(db: Session, game_id: int, owner: User) -> Game | None:
     """Marca um jogo como COMPLETED."""
     db_game = get_game_by_id(db=db, game_id=game_id, owner=owner)
@@ -229,6 +240,7 @@ def complete_game(db: Session, game_id: int, owner: User) -> Game | None:
 
     return db_game
 
+
 def delete_game(db: Session, game_id: int, owner: User):
     """Remove um jogo do banco de dados."""
     db_game = get_game_by_id(db=db, game_id=game_id, owner=owner)
@@ -240,6 +252,7 @@ def delete_game(db: Session, game_id: int, owner: User):
     db.commit()
 
     return True
+
 
 def get_statistics(db: Session, owner: User):
     """Retorna estatísticas da biblioteca."""
