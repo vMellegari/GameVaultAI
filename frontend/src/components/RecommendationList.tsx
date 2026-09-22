@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import './RecommendationList.css'
 
 interface Recommendation {
@@ -10,11 +12,28 @@ interface Recommendation {
 
 interface RecommendationListProps {
   recommendations: Recommendation[]
+  onAddToLibrary: (rawgId: number) => Promise<void>
 }
 
 export default function RecommendationList({
   recommendations,
+  onAddToLibrary,
 }: RecommendationListProps) {
+  const [addingGameId, setAddingGameId] = useState<number | null>(null)
+  const [addedGameIds, setAddedGameIds] = useState<number[]>([])
+
+  async function handleAddToLibrary(rawgId: number) {
+    try {
+      setAddingGameId(rawgId)
+
+      await onAddToLibrary(rawgId)
+
+      setAddedGameIds((currentIds) => [...currentIds, rawgId])
+    } finally {
+      setAddingGameId(null)
+    }
+  }
+
   if (recommendations.length === 0) {
     return (
       <div>
@@ -48,6 +67,21 @@ export default function RecommendationList({
             </p>
 
             <p className="recommendation-reason">{recommendation.reason}</p>
+            {recommendation.rawg_id && (
+              <button
+                onClick={() => handleAddToLibrary(recommendation.rawg_id!)}
+                disabled={
+                  addingGameId === recommendation.rawg_id ||
+                  addedGameIds.includes(recommendation.rawg_id!)
+                }
+              >
+                {addingGameId === recommendation.rawg_id
+                  ? 'Adicionando...'
+                  : addedGameIds.includes(recommendation.rawg_id!)
+                    ? '✓ Já está na biblioteca'
+                    : '+ Adicionar à biblioteca'}
+              </button>
+            )}
           </article>
         ))}
       </div>

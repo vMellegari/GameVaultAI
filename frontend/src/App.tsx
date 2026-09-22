@@ -4,7 +4,7 @@ import GameCard from './components/GameCard'
 import GameSearch from './components/GameSearch'
 import GameDetails from './components/GameDetails'
 import Statistics from './components/Statistics'
-import { getGames, getRecommendations } from './services/api'
+import { getGames, getRecommendations, importGame } from './services/api'
 import RecommendationList from './components/RecommendationList'
 import './App.css'
 
@@ -35,9 +35,11 @@ function App() {
   const [showStatistics, setShowStatistics] = useState(false)
   const [recommendations, setRecommendations] = useState<
     {
+      rawg_id: number
       title: string
       genres: string[]
       reason: string
+      cover_image: string | null
     }[]
   >([])
 
@@ -107,6 +109,17 @@ function App() {
       console.error(error)
     } finally {
       setLoadingRecommendations(false)
+    }
+  }
+
+  async function handleAddRecommendationToLibrary(rawgId: number) {
+    try {
+      await importGame(rawgId)
+
+      const updatedGames = await getGames()
+      setGames(updatedGames)
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -315,7 +328,10 @@ function App() {
             </button>
 
             {recommendations.length > 0 && (
-              <RecommendationList recommendations={recommendations} />
+              <RecommendationList
+                recommendations={recommendations}
+                onAddToLibrary={handleAddRecommendationToLibrary}
+              />
             )}
           </div>
 
