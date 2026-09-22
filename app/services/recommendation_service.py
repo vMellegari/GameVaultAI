@@ -41,7 +41,18 @@ def enrich_recommendations_with_rawg(
         if not games:
             continue
 
-        game = games[0]
+        recommendation_title = recommendation.title.lower().strip()
+
+        exact_match = next(
+            (
+                game
+                for game in games
+                if game.get("title", "").lower().strip() == recommendation_title
+            ),
+            None
+        )
+
+        game = exact_match or games[0]
 
         recommendation.rawg_id = game.get("rawg_id")
         recommendation.cover_image = game.get("cover_image")
