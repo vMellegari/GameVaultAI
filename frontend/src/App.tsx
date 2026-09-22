@@ -330,6 +330,7 @@ function App() {
             {recommendations.length > 0 && (
               <RecommendationList
                 recommendations={recommendations}
+                games={games}
                 onAddToLibrary={handleAddRecommendationToLibrary}
               />
             )}

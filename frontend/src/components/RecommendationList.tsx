@@ -10,13 +10,21 @@ interface Recommendation {
   cover_image: string | null
 }
 
+interface Game {
+  id: number
+  title: string
+  rawg_id: number | null
+}
+
 interface RecommendationListProps {
   recommendations: Recommendation[]
+  games: Game[]
   onAddToLibrary: (rawgId: number) => Promise<void>
 }
 
 export default function RecommendationList({
   recommendations,
+  games,
   onAddToLibrary,
 }: RecommendationListProps) {
   const [addingGameId, setAddingGameId] = useState<number | null>(null)
@@ -50,40 +58,48 @@ export default function RecommendationList({
       <h2>🤖 Recomendações para você</h2>
 
       <div className="recommendations-grid">
-        {recommendations.map((recommendation) => (
-          <article className="recommendation-card" key={recommendation.title}>
-            {recommendation.cover_image && (
-              <img
-                src={recommendation.cover_image}
-                alt={`Capa de ${recommendation.title}`}
-                className="recommendation-cover"
-              />
-            )}
+        {recommendations.map((recommendation) => {
+          const alreadyInLibrary = games.some(
+            (game) => game.rawg_id === recommendation.rawg_id,
+          )
 
-            <h3>{recommendation.title}</h3>
+          return (
+            <article className="recommendation-card" key={recommendation.title}>
+              {recommendation.cover_image && (
+                <img
+                  src={recommendation.cover_image}
+                  alt={`Capa de ${recommendation.title}`}
+                  className="recommendation-cover"
+                />
+              )}
 
-            <p className="recommendation-genres">
-              {recommendation.genres.join(' • ')}
-            </p>
+              <h3>{recommendation.title}</h3>
 
-            <p className="recommendation-reason">{recommendation.reason}</p>
-            {recommendation.rawg_id && (
-              <button
-                onClick={() => handleAddToLibrary(recommendation.rawg_id!)}
-                disabled={
-                  addingGameId === recommendation.rawg_id ||
-                  addedGameIds.includes(recommendation.rawg_id!)
-                }
-              >
-                {addingGameId === recommendation.rawg_id
-                  ? 'Adicionando...'
-                  : addedGameIds.includes(recommendation.rawg_id!)
-                    ? '✓ Já está na biblioteca'
-                    : '+ Adicionar à biblioteca'}
-              </button>
-            )}
-          </article>
-        ))}
+              <p className="recommendation-genres">
+                {recommendation.genres.join(' • ')}
+              </p>
+
+              <p className="recommendation-reason">{recommendation.reason}</p>
+              {recommendation.rawg_id && (
+                <button
+                  onClick={() => handleAddToLibrary(recommendation.rawg_id!)}
+                  disabled={
+                    addingGameId === recommendation.rawg_id ||
+                    addedGameIds.includes(recommendation.rawg_id!) ||
+                    alreadyInLibrary
+                  }
+                >
+                  {addingGameId === recommendation.rawg_id
+                    ? 'Adicionando...'
+                    : alreadyInLibrary ||
+                        addedGameIds.includes(recommendation.rawg_id!)
+                      ? '✓ Já está na biblioteca'
+                      : '+ Adicionar à biblioteca'}
+                </button>
+              )}
+            </article>
+          )
+        })}
       </div>
     </section>
   )
