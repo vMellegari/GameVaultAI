@@ -55,7 +55,15 @@ export default function RecommendationList({
 
   return (
     <section className="recommendations">
-      <h2>🤖 Recomendações para você</h2>
+      <div className="recommendations-header">
+        <div>
+          <h2>🤖 Recomendações com IA</h2>
+          <p>
+            Sugestões baseadas nos jogos da sua biblioteca, favoritos e
+            avaliações.
+          </p>
+        </div>
+      </div>
 
       <div className="recommendations-grid">
         {recommendations.map((recommendation) => {
@@ -73,30 +81,36 @@ export default function RecommendationList({
                 />
               )}
 
-              <h3>{recommendation.title}</h3>
+              <div className="recommendation-content">
+                <h3>{recommendation.title}</h3>
 
-              <p className="recommendation-genres">
-                {recommendation.genres.join(' • ')}
-              </p>
+                <p className="recommendation-genres">
+                  {recommendation.genres.join(' • ')}
+                </p>
 
-              <p className="recommendation-reason">{recommendation.reason}</p>
-              {recommendation.rawg_id && (
-                <button
-                  onClick={() => handleAddToLibrary(recommendation.rawg_id!)}
-                  disabled={
-                    addingGameId === recommendation.rawg_id ||
-                    addedGameIds.includes(recommendation.rawg_id!) ||
-                    alreadyInLibrary
-                  }
-                >
-                  {addingGameId === recommendation.rawg_id
-                    ? 'Adicionando...'
-                    : alreadyInLibrary ||
-                        addedGameIds.includes(recommendation.rawg_id!)
-                      ? '✓ Já está na biblioteca'
-                      : '+ Adicionar à biblioteca'}
-                </button>
-              )}
+                <span className="recommendation-reason-label">
+                  💡Por que recomendamos
+                </span>
+                <p className="recommendation-reason">{recommendation.reason}</p>
+                {recommendation.rawg_id && (
+                  <button
+                    className="add-recommendation-button"
+                    onClick={() => handleAddToLibrary(recommendation.rawg_id!)}
+                    disabled={
+                      addingGameId === recommendation.rawg_id ||
+                      addedGameIds.includes(recommendation.rawg_id!) ||
+                      alreadyInLibrary
+                    }
+                  >
+                    {addingGameId === recommendation.rawg_id
+                      ? 'Adicionando...'
+                      : alreadyInLibrary ||
+                          addedGameIds.includes(recommendation.rawg_id!)
+                        ? '✓ Já está na biblioteca'
+                        : '+ Adicionar à biblioteca'}
+                  </button>
+                )}
+              </div>
             </article>
           )
         })}

@@ -1,9 +1,39 @@
 .recommendations {
-  margin: 24px 0;
+  margin: 24px 0 36px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #2d3342;
 }
 
-.recommendations h2 {
-  margin-bottom: 16px;
+.recommendations-header {
+  margin-bottom: 20px;
+}
+
+.recommendations-header h2 {
+  margin-bottom: 6px;
+}
+
+.recommendations-header p {
+  margin: 0;
+  color: #9da5b4;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ai-recommendations-button {
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: #6366f1;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.ai-recommendations-loading {
+  margin: 0 0 20px;
+  color: #9da5b4;
+  font-size: 14px;
 }
 
 .recommendations-grid {
@@ -13,15 +43,43 @@
 }
 
 .recommendation-card {
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid #2d3342;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #171a22;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-3px);
+  border-color: #46506a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.recommendation-cover {
+  display: block;
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+}
+
+.recommendation-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 18px;
 }
 
 .recommendation-card h3 {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-size: 18px;
+  line-height: 1.3;
 }
 
 .recommendation-genres {
@@ -30,23 +88,36 @@
   font-size: 14px;
 }
 
+.recommendation-reason-label {
+  margin-bottom: 6px;
+  color: #9da5b4;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .recommendation-reason {
-  margin: 0;
+  margin: 0 0 18px;
   color: #d8dce5;
-  line-height: 1.5;
+  line-height: 1.55;
   font-size: 14px;
 }
 
-.recommendations {
-  margin: 24px 0 36px;
-  padding-bottom: 28px;
-  border-bottom: 1px solid #2d3342;
+.add-recommendation-button {
+  width: 100%;
+  margin-top: auto;
+  padding: 9px 12px;
+  border: 1px solid #303542;
+  border-radius: 7px;
+  background: #1d212c;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.recommendation-cover {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 14px;
+.add-recommendation-button:hover {
+  background: #242936;
 }

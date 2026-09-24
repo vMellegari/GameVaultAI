@@ -11,6 +11,7 @@ import './App.css'
 interface Game {
   id: number
   title: string
+  rawg_id: number | null
   platform: string
   status: string
   personal_rating: number | null
@@ -150,76 +151,6 @@ function App() {
     return <Login onLogin={() => setAuthenticated(true)} />
   }
 
-  if (selectedGameId !== null) {
-    return (
-      <div className="app">
-        <header className="topbar">
-          <div className="logo">
-            <span>🎮</span>
-            <h1>GameVault AI</h1>
-          </div>
-
-          <div className="topbar-actions">
-            <div className="user-avatar">V</div>
-          </div>
-        </header>
-
-        <main className="content details-content">
-          <GameDetails
-            gameId={selectedGameId}
-            onClose={() => setSelectedGameId(null)}
-            onDeleted={() => loadGames()}
-          />
-        </main>
-      </div>
-    )
-  }
-
-  if (showStatistics) {
-    return (
-      <div className="app">
-        <header className="topbar">
-          <div className="logo">
-            <span>🎮</span>
-            <h1>GameVault AI</h1>
-          </div>
-
-          <div className="topbar-actions">
-            <div className="user-avatar">V</div>
-          </div>
-        </header>
-
-        <main className="content details-content">
-          <Statistics onClose={() => setShowStatistics(false)} />
-        </main>
-      </div>
-    )
-  }
-
-  if (showSearch) {
-    return (
-      <div className="app">
-        <header className="topbar">
-          <div className="logo">
-            <span>🎮</span>
-            <h1>GameVault AI</h1>
-          </div>
-
-          <div className="topbar-actions">
-            <div className="user-avatar">V</div>
-          </div>
-        </header>
-
-        <main className="content search-content">
-          <GameSearch
-            onClose={() => setShowSearch(false)}
-            onImported={() => loadGames()}
-          />
-        </main>
-      </div>
-    )
-  }
-
   return (
     <div className="app">
       <header className="topbar">
@@ -244,13 +175,26 @@ function App() {
       <div className="layout">
         <aside className="sidebar">
           <nav>
-            <button className="nav-item active">🎮 Biblioteca</button>
+            <button
+              className={`nav-item ${!showStatistics && !showSearch && selectedGameId === null ? 'active' : ''}`}
+              onClick={() => {
+                setShowStatistics(false)
+                setShowSearch(false)
+                setSelectedGameId(null)
+              }}
+            >
+              🎮 Biblioteca
+            </button>
 
             <button className="nav-item">⭐ Favoritos</button>
 
             <button
-              className="nav-item"
-              onClick={() => setShowStatistics(true)}
+              className={`nav-item ${showStatistics ? 'active' : ''}`}
+              onClick={() => {
+                setShowStatistics(true)
+                setShowSearch(false)
+                setSelectedGameId(null)
+              }}
             >
               📊 Estatísticas
             </button>
@@ -258,124 +202,151 @@ function App() {
         </aside>
 
         <main className="content">
-          <section className="page-header">
-            <div>
-              <h2>Minha biblioteca</h2>
+          {selectedGameId !== null ? (
+            <GameDetails
+              gameId={selectedGameId}
+              onClose={() => setSelectedGameId(null)}
+              onDeleted={() => loadGames()}
+            />
+          ) : showStatistics ? (
+            <Statistics onClose={() => setShowStatistics(false)} />
+          ) : showSearch ? (
+            <GameSearch
+              onClose={() => setShowSearch(false)}
+              onImported={() => loadGames()}
+            />
+          ) : (
+            <>
+              <section className="page-header">
+                <div>
+                  <h2>Minha biblioteca</h2>
 
-              <p>Gerencie seus jogos e acompanhe seu progresso.</p>
-            </div>
+                  <p>Gerencie seus jogos e acompanhe seu progresso.</p>
+                </div>
 
-            <button
-              className="add-game-button"
-              onClick={() => setShowSearch(true)}
-            >
-              + Adicionar jogo
-            </button>
-          </section>
+                <button
+                  className="add-game-button"
+                  onClick={() => setShowSearch(true)}
+                >
+                  + Adicionar jogo
+                </button>
+              </section>
 
-          <section className="library-summary">
-            <span>
-              {games.length} {games.length === 1 ? 'jogo' : 'jogos'}
-            </span>
-          </section>
+              <section className="library-summary">
+                <span>
+                  {games.length} {games.length === 1 ? 'jogo' : 'jogos'}
+                </span>
+              </section>
 
-          <section className="filters">
-            <button
-              className={`filter ${activeFilter === 'all' ? 'active' : ''}`}
-              onClick={() => handleFilterChange('all')}
-            >
-              Todos
-            </button>
+              <section className="filters">
+                <button
+                  className={`filter ${activeFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => handleFilterChange('all')}
+                >
+                  Todos
+                </button>
 
-            <button
-              className={`filter ${activeFilter === 'backlog' ? 'active' : ''}`}
-              onClick={() => handleFilterChange('backlog')}
-            >
-              Backlog
-            </button>
+                <button
+                  className={`filter ${activeFilter === 'backlog' ? 'active' : ''}`}
+                  onClick={() => handleFilterChange('backlog')}
+                >
+                  Backlog
+                </button>
 
-            <button
-              className={`filter ${activeFilter === 'playing' ? 'active' : ''}`}
-              onClick={() => handleFilterChange('playing')}
-            >
-              Jogando
-            </button>
+                <button
+                  className={`filter ${activeFilter === 'playing' ? 'active' : ''}`}
+                  onClick={() => handleFilterChange('playing')}
+                >
+                  Jogando
+                </button>
 
-            <button
-              className={`filter ${
-                activeFilter === 'completed' ? 'active' : ''
-              }`}
-              onClick={() => handleFilterChange('completed')}
-            >
-              Concluídos
-            </button>
+                <button
+                  className={`filter ${
+                    activeFilter === 'completed' ? 'active' : ''
+                  }`}
+                  onClick={() => handleFilterChange('completed')}
+                >
+                  Concluídos
+                </button>
 
-            <button
-              className={`filter ${
-                activeFilter === 'favorites' ? 'active' : ''
-              }`}
-              onClick={() => handleFilterChange('favorites')}
-            >
-              Favoritos
-            </button>
-          </section>
+                <button
+                  className={`filter ${
+                    activeFilter === 'favorites' ? 'active' : ''
+                  }`}
+                  onClick={() => handleFilterChange('favorites')}
+                >
+                  Favoritos
+                </button>
+              </section>
 
-          <div>
-            <button onClick={handleRecommendations}>
-              {loadingRecommendations
-                ? 'Analisando sua biblioteca...'
-                : '🤖 Recomendações com IA'}
-            </button>
+              <div>
+                <button
+                  className="ai-recommendations-button"
+                  onClick={handleRecommendations}
+                  disabled={loadingRecommendations}
+                >
+                  {loadingRecommendations
+                    ? '🤖 Analisando sua biblioteca...'
+                    : '✨ Gerar recomendações'}
+                </button>
 
-            {recommendations.length > 0 && (
-              <RecommendationList
-                recommendations={recommendations}
-                games={games}
-                onAddToLibrary={handleAddRecommendationToLibrary}
-              />
-            )}
-          </div>
+                {loadingRecommendations && (
+                  <p className="ai-recommendations-loading">
+                    Considerando seus jogos, favoritos, avaliações e gêneros...
+                  </p>
+                )}
 
-          {actionMessage && (
-            <div className="action-message">{actionMessage}</div>
-          )}
+                {recommendations.length > 0 && (
+                  <RecommendationList
+                    recommendations={recommendations}
+                    games={games}
+                    onAddToLibrary={handleAddRecommendationToLibrary}
+                  />
+                )}
+              </div>
 
-          {loading && (
-            <div className="library-message">
-              <p>Carregando sua biblioteca...</p>
-            </div>
-          )}
+              {actionMessage && (
+                <div className="action-message">{actionMessage}</div>
+              )}
 
-          {error && (
-            <div className="library-message error">
-              <p>{error}</p>
-            </div>
-          )}
+              {loading && (
+                <div className="library-message">
+                  <p>Carregando sua biblioteca...</p>
+                </div>
+              )}
 
-          {!loading && !error && games.length === 0 && (
-            <div className="library-message">
-              <h3>Nenhum jogo encontrado</h3>
-              <p>Não há jogos correspondentes a este filtro.</p>
-            </div>
-          )}
+              {error && (
+                <div className="library-message error">
+                  <p>{error}</p>
+                </div>
+              )}
 
-          {!loading && !error && games.length > 0 && (
-            <section className="games-grid">
-              {games.map((game) => (
-                <GameCard
-                  key={game.id}
-                  id={game.id}
-                  title={game.title}
-                  platform={game.platform}
-                  status={game.status}
-                  rating={game.personal_rating}
-                  favorite={game.favorite}
-                  coverImage={game.cover_image}
-                  onUpdated={handleGameUpdated}
-                  onDetails={(gameId) => setSelectedGameId(gameId)}
-                />
-              ))}
-            </section>
+              {!loading && !error && games.length === 0 && (
+                <div className="library-message">
+                  <h3>Nenhum jogo encontrado</h3>
+                  <p>Não há jogos correspondentes a este filtro.</p>
+                </div>
+              )}
+
+              {!loading && !error && games.length > 0 && (
+                <section className="games-grid">
+                  {games.map((game) => (
+                    <GameCard
+                      key={game.id}
+                      id={game.id}
+                      title={game.title}
+                      platform={game.platform}
+                      status={game.status}
+                      rating={game.personal_rating}
+                      favorite={game.favorite}
+                      coverImage={game.cover_image}
+                      onUpdated={handleGameUpdated}
+                      onDetails={(gameId) => setSelectedGameId(gameId)}
+                    />
+                  ))}
+                </section>
+              )}
+            </>
           )}
         </main>
       </div>
