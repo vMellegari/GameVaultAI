@@ -9,7 +9,7 @@ interface GameCardProps {
   rating?: number | null
   favorite?: boolean
   coverImage?: string | null
-  onUpdated: (message: string) => void
+  onUpdated: (message: string, gameId: number, action: string) => void
   onDetails: (gameId: number) => void
 }
 
@@ -31,9 +31,9 @@ function GameCard({
 
     try {
       await startGame(id)
-      onUpdated('Jogo iniciado.')
+      onUpdated('Jogo iniciado.', id, 'start')
     } catch {
-      onUpdated('Não foi possível iniciar o jogo.')
+      onUpdated('Não foi possível iniciar o jogo.', id, 'start')
     } finally {
       setActionLoading(false)
     }
@@ -44,9 +44,9 @@ function GameCard({
 
     try {
       await completeGame(id)
-      onUpdated('Jogo concluído.')
+      onUpdated('Jogo concluído.', id, 'complete')
     } catch {
-      onUpdated('Não foi possível concluir o jogo.')
+      onUpdated('Não foi possível concluir o jogo.', id, 'complete')
     } finally {
       setActionLoading(false)
     }
@@ -62,9 +62,11 @@ function GameCard({
         favorite
           ? 'Jogo removido dos favoritos.'
           : 'Jogo adicionado aos favoritos.',
+        id,
+        'favorite',
       )
     } catch {
-      onUpdated('Não foi possível atualizar o favorito.')
+      onUpdated('Não foi possível atualizar o favorito.', id, 'favorite')
     } finally {
       setActionLoading(false)
     }

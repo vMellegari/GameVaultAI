@@ -95,14 +95,51 @@ function App() {
     [activeFilter],
   )
 
-  function handleGameUpdated(message: string) {
+  function handleGameUpdated(message: string, gameId: number, action: string) {
     setActionMessage(message)
 
-    loadGames()
+    setGames((currentGames) => {
+      const updatedGames = currentGames
+        .map((game) => {
+          if (game.id !== gameId) {
+            return game
+          }
 
-    setTimeout(() => {
-      setActionMessage('')
-    }, 2500)
+          if (action === 'start') {
+            return {
+              ...game,
+              status: 'PLAYING',
+            }
+          }
+
+          if (action === 'complete') {
+            return {
+              ...game,
+              status: 'COMPLETED',
+            }
+          }
+
+          if (action === 'favorite') {
+            return {
+              ...game,
+              favorite: !game.favorite,
+            }
+          }
+
+          return game
+        })
+        .filter((game) => {
+          if (activeFilter === 'favorites') {
+            return game.favorite
+          }
+
+          return true
+        })
+
+      return updatedGames
+    })
+
+    setTimeout(() => setActionMessage(''), 2500)
   }
 
   async function handleRecommendations() {
@@ -121,10 +158,17 @@ function App() {
 
   async function handleAddRecommendationToLibrary(rawgId: number) {
     try {
-      await importGame(rawgId)
+      const newGame = await importGame(rawgId)
 
-      const updatedGames = await getGames()
-      setGames(updatedGames)
+      setGames((currentGames) => {
+        const updatedGames = [...currentGames, newGame]
+
+        return updatedGames.sort((a, b) =>
+          a.title.localeCompare(b.title, 'pt-BR', {
+            sensitivity: 'base',
+          }),
+        )
+      })
     } catch (error) {
       console.error(error)
     }
