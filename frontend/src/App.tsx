@@ -74,7 +74,13 @@ function App() {
 
         const data = await getGames(status, favorite)
 
-        setGames(data)
+        const sortedGames = [...data].sort((a, b) =>
+          a.title.localeCompare(b.title, 'pt-BR', {
+            sensitivity: 'base',
+          }),
+        )
+
+        setGames(sortedGames)
       } catch (err) {
         if (err instanceof Error && err.message === 'Sessão expirada.') {
           setAuthenticated(false)
@@ -185,8 +191,6 @@ function App() {
             >
               🎮 Biblioteca
             </button>
-
-            <button className="nav-item">⭐ Favoritos</button>
 
             <button
               className={`nav-item ${showStatistics ? 'active' : ''}`}
