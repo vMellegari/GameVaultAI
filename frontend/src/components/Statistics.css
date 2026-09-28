@@ -101,6 +101,10 @@
   transition: width 0.3s ease;
 }
 
+.statistics-progress-fill.ongoing {
+  background: #14b8a6;
+}
+
 .stat-icon {
   font-size: 28px;
 }

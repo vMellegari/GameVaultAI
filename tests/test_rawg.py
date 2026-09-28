@@ -72,6 +72,22 @@ def test_import_game_persists_rawg_details(client, auth_headers, monkeypatch):
     assert response.json()["title"] == "Imported Game"
     assert response.json()["release_date"] == "2020-01-02"
     assert response.json()["genres"] == "Action, RPG"
+    assert response.json()["game_type"] == "STANDARD"
+
+
+def test_import_game_accepts_ongoing_type(client, auth_headers, monkeypatch):
+    monkeypatch.setattr(
+        "app.services.game_service.get_game_details",
+        lambda rawg_id: rawg_details(rawg_id)
+    )
+
+    response = client.post(
+        "/games/import/123?game_type=ONGOING",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["game_type"] == "ONGOING"
 
 
 def test_import_game_returns_existing_game_for_same_user(
@@ -84,12 +100,77 @@ def test_import_game_returns_existing_game_for_same_user(
         lambda rawg_id: rawg_details(rawg_id)
     )
 
-    first = client.post("/games/import/123", headers=auth_headers)
+    first = client.post(
+        "/games/import/123?game_type=ONGOING",
+        headers=auth_headers,
+    )
     second = client.post("/games/import/123", headers=auth_headers)
 
     assert first.status_code == 200
     assert second.status_code == 200
     assert second.json()["id"] == first.json()["id"]
+    assert second.json()["game_type"] == "ONGOING"
+
+
+def test_import_game_enriches_manual_game_and_applies_selected_type(
+    client,
+    create_game,
+    auth_headers,
+    monkeypatch,
+):
+    manual_game = create_game(title="Imported Game")
+    monkeypatch.setattr(
+        "app.services.game_service.get_game_details",
+        lambda rawg_id: rawg_details(rawg_id)
+    )
+
+    response = client.post(
+        "/games/import/123?game_type=ONGOING",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["id"] == manual_game["id"]
+    assert response.json()["rawg_id"] == 123
+    assert response.json()["game_type"] == "ONGOING"
+
+
+def test_import_ongoing_type_rejects_completed_manual_game(
+    client,
+    create_game,
+    auth_headers,
+    monkeypatch,
+):
+    manual_game = create_game(title="Imported Game")
+    completed = client.patch(
+        f"/games/{manual_game['id']}/complete",
+        headers=auth_headers,
+    )
+    assert completed.status_code == 200
+
+    monkeypatch.setattr(
+        "app.services.game_service.get_game_details",
+        lambda rawg_id: rawg_details(rawg_id)
+    )
+
+    response = client.post(
+        "/games/import/123?game_type=ONGOING",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == (
+        "Um jogo concluído não pode ser importado como experiência contínua."
+    )
+
+    unchanged = client.get(
+        f"/games/{manual_game['id']}",
+        headers=auth_headers,
+    )
+    assert unchanged.status_code == 200
+    assert unchanged.json()["status"] == "COMPLETED"
+    assert unchanged.json()["game_type"] == "STANDARD"
+    assert unchanged.json()["rawg_id"] is None
 
 
 def test_import_game_is_not_shared_between_users(

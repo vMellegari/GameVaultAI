@@ -8,5 +8,7 @@ class GameStats(BaseModel):
     dropped: int
     wishlist: int
     favorite_games: int
+    standard_games: int
+    ongoing_games: int
     total_hours: float
     average_rating: float | None

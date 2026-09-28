@@ -150,9 +150,26 @@
 
 .filters {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 
   margin: 16px 0 24px;
+}
+
+.filters-label {
+  margin-right: 4px;
+  color: #8b93a5;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.filters-type {
+  margin-bottom: 8px;
+}
+
+.filters-status {
+  margin-top: 0;
 }
 
 .filter {
@@ -268,4 +285,4 @@
 .load-more-button:disabled {
   cursor: wait;
   opacity: 0.65;
-}\n
+}

@@ -23,9 +23,18 @@ interface Game {
 }
 
 type Filter = 'all' | 'backlog' | 'playing' | 'completed' | 'favorites'
+type GameType = 'STANDARD' | 'ONGOING'
 const PAGE_SIZE = 10
 
-function matchesActiveFilter(game: Game, filter: Filter) {
+function matchesActiveFilter(
+  game: Game,
+  filter: Filter,
+  gameType: GameType | null,
+) {
+  if (gameType && game.game_type !== gameType) {
+    return false
+  }
+
   if (filter === 'favorites') {
     return game.favorite
   }
@@ -73,10 +82,12 @@ function App() {
 
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
   const [activeFilter, setActiveFilter] = useState<Filter>('all')
+  const [activeGameType, setActiveGameType] = useState<GameType | null>(null)
 
   const loadGames = useCallback(
     async (
       filter: Filter = activeFilter,
+      gameType: GameType | null = activeGameType,
       pageToLoad = 1,
       append = false,
     ) => {
@@ -113,6 +124,7 @@ function App() {
           favorite,
           pageToLoad,
           PAGE_SIZE,
+          gameType ?? undefined,
         )
 
         setGames((currentGames) => {
@@ -144,7 +156,7 @@ function App() {
         setLoadingMore(false)
       }
     },
-    [activeFilter],
+    [activeFilter, activeGameType],
   )
 
   function handleGameUpdated(message: string, gameId: number, action: string) {
@@ -180,7 +192,9 @@ function App() {
 
           return game
         })
-        .filter((game) => matchesActiveFilter(game, activeFilter))
+        .filter((game) =>
+          matchesActiveFilter(game, activeFilter, activeGameType),
+        )
 
       return updatedGames
     })
@@ -206,6 +220,10 @@ function App() {
     try {
       const newGame = await importGame(rawgId)
 
+      if (!matchesActiveFilter(newGame, activeFilter, activeGameType)) {
+        return
+      }
+
       setGames((currentGames) => {
         const updatedGames = [...currentGames, newGame]
 
@@ -228,7 +246,7 @@ function App() {
 
       return () => window.clearTimeout(timeoutId)
     }
-  }, [authenticated, activeFilter, loadGames])
+  }, [authenticated, activeFilter, activeGameType, loadGames])
 
   function handleFilterChange(filter: Filter) {
     setActiveFilter(filter)
@@ -320,7 +338,11 @@ function App() {
                         : game,
                     )
                     .filter((game) =>
-                      matchesActiveFilter(game, activeFilter),
+                      matchesActiveFilter(
+                        game,
+                        activeFilter,
+                        activeGameType,
+                      ),
                     ),
                 )
               }}
@@ -358,7 +380,30 @@ function App() {
                 </span>
               </section>
 
-              <section className="filters">
+              <section className="filters filters-type">
+                <span className="filters-label">Tipo:</span>
+                <button
+                  className={`filter ${activeGameType === null ? 'active' : ''}`}
+                  onClick={() => setActiveGameType(null)}
+                >
+                  Todos
+                </button>
+                <button
+                  className={`filter ${activeGameType === 'STANDARD' ? 'active' : ''}`}
+                  onClick={() => setActiveGameType('STANDARD')}
+                >
+                  Tradicionais
+                </button>
+                <button
+                  className={`filter ${activeGameType === 'ONGOING' ? 'active' : ''}`}
+                  onClick={() => setActiveGameType('ONGOING')}
+                >
+                  Contínuos
+                </button>
+              </section>
+
+              <section className="filters filters-status">
+                <span className="filters-label">Status:</span>
                 <button
                   className={`filter ${activeFilter === 'all' ? 'active' : ''}`}
                   onClick={() => handleFilterChange('all')}
@@ -476,7 +521,12 @@ function App() {
                   <button
                     className="load-more-button"
                     onClick={() =>
-                      void loadGames(activeFilter, page + 1, true)
+                      void loadGames(
+                        activeFilter,
+                        activeGameType,
+                        page + 1,
+                        true,
+                      )
                     }
                     disabled={loadingMore}
                   >

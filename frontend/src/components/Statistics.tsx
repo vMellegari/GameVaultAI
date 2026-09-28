@@ -11,6 +11,8 @@ interface GameStats {
   dropped: number
   wishlist: number
   favorite_games: number
+  standard_games: number
+  ongoing_games: number
   total_hours: number
   average_rating: number | null
 }
@@ -235,6 +237,58 @@ function Statistics({ onClose }: StatisticsProps) {
               />
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="statistics-summary">
+        <div className="statistics-summary-header">
+          <h3>Tipos de jogo</h3>
+          <span>{stats.standard_games + stats.ongoing_games} jogos</span>
+        </div>
+
+        <div className="statistics-status-list">
+          {[
+            {
+              label: '🎮 Tradicionais',
+              count: stats.standard_games,
+              ongoing: false,
+            },
+            {
+              label: '🔄 Contínuos',
+              count: stats.ongoing_games,
+              ongoing: true,
+            },
+          ].map((gameType) => {
+            const percentage =
+              stats.total_games > 0
+                ? Math.round((gameType.count / stats.total_games) * 100)
+                : 0
+
+            return (
+              <div className="statistics-status-item" key={gameType.label}>
+                <div>
+                  <span>{gameType.label}</span>
+                  <strong>
+                    {gameType.count} — {percentage}%
+                  </strong>
+                </div>
+
+                <div className="statistics-progress">
+                  <div
+                    className={`statistics-progress-fill${
+                      gameType.ongoing ? ' ongoing' : ''
+                    }`}
+                    role="progressbar"
+                    aria-label={gameType.label}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={percentage}
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
         </div>
       </section>
     </div>

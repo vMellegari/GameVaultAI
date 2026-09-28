@@ -32,6 +32,7 @@ def get_all_games(
         db: Session,
         owner: User,
         status: GameStatus | None = None,
+        game_type: GameType | None = None,
         platform: str | None = None,
         title: str | None = None,
         sort_by: SortField | None = None,
@@ -44,6 +45,9 @@ def get_all_games(
 
     if status:
         query = query.filter(Game.status == status)
+
+    if game_type:
+        query = query.filter(Game.game_type == game_type)
 
     if platform:
         query = query.filter(Game.platform == platform)
@@ -319,6 +323,14 @@ def get_statistics(db: Session, owner: User):
         Game.favorite.is_(True)
     ).count()
 
+    standard_games = base_query.filter(
+        Game.game_type == GameType.STANDARD
+    ).count()
+
+    ongoing_games = base_query.filter(
+        Game.game_type == GameType.ONGOING
+    ).count()
+
     total_hours = (
         base_query.with_entities(
             func.sum(Game.hours_played)
@@ -337,6 +349,8 @@ def get_statistics(db: Session, owner: User):
         "dropped": dropped,
         "wishlist": wishlist,
         "favorite_games": favorite_games,
+        "standard_games": standard_games,
+        "ongoing_games": ongoing_games,
         "total_hours": total_hours,
         "average_rating": average_rating,
     }

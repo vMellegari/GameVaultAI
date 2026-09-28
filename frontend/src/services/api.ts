@@ -32,6 +32,7 @@ export async function getGames(
   favorite?: boolean,
   page = 1,
   limit = 10,
+  gameType?: 'STANDARD' | 'ONGOING',
 ) {
   const params = new URLSearchParams()
 
@@ -41,6 +42,10 @@ export async function getGames(
 
   if (favorite !== undefined) {
     params.append('favorite', String(favorite))
+  }
+
+  if (gameType) {
+    params.append('game_type', gameType)
   }
 
   params.append('page', String(page))
