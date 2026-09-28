@@ -6,6 +6,7 @@ interface Game {
   title: string
   platform: string
   status: string
+  game_type: 'STANDARD' | 'ONGOING'
   personal_rating: number | null
   hours_played: number
   favorite: boolean
@@ -20,10 +21,26 @@ interface Game {
 interface GameDetailsProps {
   gameId: number
   onClose: () => void
+  onUpdated: (game: Game) => void
   onDeleted: () => void
 }
 
-function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
+function getStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    BACKLOG: 'Backlog',
+    PLAYING: 'Jogando',
+    COMPLETED: 'Concluído',
+  }
+
+  return labels[status] || status
+}
+
+function GameDetails({
+  gameId,
+  onClose,
+  onUpdated,
+  onDeleted,
+}: GameDetailsProps) {
   const [game, setGame] = useState<Game | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -34,6 +51,7 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
 
   const [platform, setPlatform] = useState('')
   const [status, setStatus] = useState('')
+  const [gameType, setGameType] = useState<'STANDARD' | 'ONGOING'>('STANDARD')
   const [rating, setRating] = useState('')
   const [hoursPlayed, setHoursPlayed] = useState('')
   const [notes, setNotes] = useState('')
@@ -51,6 +69,7 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
 
         setPlatform(data.platform)
         setStatus(data.status)
+        setGameType(data.game_type)
         setRating(
           data.personal_rating !== null ? String(data.personal_rating) : '',
         )
@@ -72,6 +91,27 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
       return
     }
 
+    const numericRating = rating === '' ? null : Number(rating)
+    const numericHours = Number(hoursPlayed)
+
+    if (
+      numericRating !== null &&
+      (Number.isNaN(numericRating) || numericRating < 0 || numericRating > 10)
+    ) {
+      setError('A nota deve estar entre 0 e 10.')
+      return
+    }
+
+    if (Number.isNaN(numericHours) || numericHours < 0) {
+      setError('As horas jogadas não podem ser negativas.')
+      return
+    }
+
+    if (gameType === 'ONGOING' && status === 'COMPLETED') {
+      setError('Jogos contínuos não podem ter o status Concluído.')
+      return
+    }
+
     setSaving(true)
     setError('')
 
@@ -79,16 +119,22 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
       const updatedGame = await updateGame(game.id, {
         platform,
         status,
-        personal_rating: rating === '' ? null : Number(rating),
-        hours_played: Number(hoursPlayed),
+        game_type: gameType,
+        personal_rating: numericRating,
+        hours_played: numericHours,
         notes: notes || null,
         favorite,
       })
 
       setGame(updatedGame)
       setEditing(false)
-    } catch {
-      setError('Não foi possível salvar as alterações.')
+      onUpdated(updatedGame)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível salvar as alterações.',
+      )
     } finally {
       setSaving(false)
     }
@@ -101,6 +147,7 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
 
     setPlatform(game.platform)
     setStatus(game.status)
+    setGameType(game.game_type)
     setRating(game.personal_rating !== null ? String(game.personal_rating) : '')
     setHoursPlayed(String(game.hours_played))
     setNotes(game.notes || '')
@@ -108,6 +155,14 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
 
     setEditing(false)
     setError('')
+  }
+
+  function handleClose() {
+    if (editing) {
+      handleCancel()
+    }
+
+    onClose()
   }
 
   async function handleDelete() {
@@ -141,7 +196,7 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
   if (error && !game) {
     return (
       <div className="details-page">
-        <button className="close-button" onClick={onClose}>
+        <button className="close-button" onClick={handleClose}>
           ← Voltar
         </button>
 
@@ -179,8 +234,6 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
           <div className="details-title-row">
             <div>
               <h2>{game.title}</h2>
-
-              <p className="details-platform">{game.platform}</p>
             </div>
 
             {!editing && (
@@ -194,20 +247,48 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
             {editing ? (
               <select
                 value={status}
-                onChange={(event) => setStatus(event.target.value)}
+                onChange={(event) => {
+                  setStatus(event.target.value)
+                  setError('')
+                }}
               >
                 <option value="BACKLOG">Backlog</option>
 
                 <option value="PLAYING">Jogando</option>
 
-                <option value="COMPLETED">Concluído</option>
+                <option value="COMPLETED" disabled={gameType === 'ONGOING'}>
+                  Concluído
+                </option>
               </select>
             ) : (
-              <span>{game.status}</span>
+              <span>{getStatusLabel(game.status)}</span>
             )}
           </div>
 
           <div className="details-grid">
+            <div>
+              <strong>Tipo de experiência</strong>
+
+              {editing ? (
+                <select
+                  value={gameType}
+                  onChange={(event) => {
+                    setGameType(event.target.value as 'STANDARD' | 'ONGOING')
+                    setError('')
+                  }}
+                >
+                  <option value="STANDARD">Tradicional</option>
+                  <option value="ONGOING" disabled={status === 'COMPLETED'}>
+                    Contínua
+                  </option>
+                </select>
+              ) : (
+                <span>
+                  {game.game_type === 'ONGOING' ? 'Contínua' : 'Tradicional'}
+                </span>
+              )}
+            </div>
+
             <div>
               <strong>Plataforma</strong>
 
@@ -274,6 +355,17 @@ function GameDetails({ gameId, onClose, onDeleted }: GameDetailsProps) {
               <strong>Lançamento</strong>
 
               <span>{game.release_date || 'Não disponível'}</span>
+            </div>
+
+            <div>
+              <strong>Data de conclusão</strong>
+              <span>
+                {game.game_type === 'ONGOING'
+                  ? 'Não se aplica'
+                  : game.completed_at
+                  ? new Date(game.completed_at).toLocaleDateString('pt-BR')
+                  : 'Não concluído'}
+              </span>
             </div>
           </div>
 

@@ -14,6 +14,7 @@ interface Game {
   rawg_id: number | null
   platform: string
   status: string
+  game_type: 'STANDARD' | 'ONGOING'
   personal_rating: number | null
   hours_played: number
   favorite: boolean
@@ -21,6 +22,27 @@ interface Game {
 }
 
 type Filter = 'all' | 'backlog' | 'playing' | 'completed' | 'favorites'
+const PAGE_SIZE = 10
+
+function matchesActiveFilter(game: Game, filter: Filter) {
+  if (filter === 'favorites') {
+    return game.favorite
+  }
+
+  if (filter === 'backlog') {
+    return game.status === 'BACKLOG'
+  }
+
+  if (filter === 'playing') {
+    return game.status === 'PLAYING'
+  }
+
+  if (filter === 'completed') {
+    return game.status === 'COMPLETED'
+  }
+
+  return true
+}
 
 function App() {
   const [authenticated, setAuthenticated] = useState(
@@ -29,7 +51,11 @@ function App() {
 
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState('')
+  const [loadMoreError, setLoadMoreError] = useState('')
+  const [page, setPage] = useState(1)
+  const [hasMoreGames, setHasMoreGames] = useState(false)
   const [actionMessage, setActionMessage] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null)
@@ -48,48 +74,73 @@ function App() {
   const [activeFilter, setActiveFilter] = useState<Filter>('all')
 
   const loadGames = useCallback(
-    async (filter: Filter = activeFilter) => {
-      setLoading(true)
-      setError('')
+    async (
+      filter: Filter = activeFilter,
+      pageToLoad = 1,
+      append = false,
+    ) => {
+      if (append) {
+        setLoadingMore(true)
+        setLoadMoreError('')
+      } else {
+        setLoading(true)
+        setError('')
+      }
 
       try {
         let status: string | undefined
         let favorite: boolean | undefined
 
         if (filter === 'backlog') {
-          status = 'backlog'
+          status = 'BACKLOG'
         }
 
         if (filter === 'playing') {
-          status = 'playing'
+          status = 'PLAYING'
         }
 
         if (filter === 'completed') {
-          status = 'completed'
+          status = 'COMPLETED'
         }
 
         if (filter === 'favorites') {
           favorite = true
         }
 
-        const data = await getGames(status, favorite)
-
-        const sortedGames = [...data].sort((a, b) =>
-          a.title.localeCompare(b.title, 'pt-BR', {
-            sensitivity: 'base',
-          }),
+        const data: Game[] = await getGames(
+          status,
+          favorite,
+          pageToLoad,
+          PAGE_SIZE,
         )
 
-        setGames(sortedGames)
+        setGames((currentGames) => {
+          const nextGames = append
+            ? [...currentGames, ...data]
+            : data
+
+          return nextGames.sort((a, b) =>
+            a.title.localeCompare(b.title, 'pt-BR', {
+              sensitivity: 'base',
+            }),
+          )
+        })
+        setPage(pageToLoad)
+        setHasMoreGames(data.length === PAGE_SIZE)
       } catch (err) {
         if (err instanceof Error && err.message === 'Sessão expirada.') {
           setAuthenticated(false)
           return
         }
 
-        setError('Não foi possível carregar sua biblioteca.')
+        if (append) {
+          setLoadMoreError('Não foi possível carregar mais jogos.')
+        } else {
+          setError('Não foi possível carregar sua biblioteca.')
+        }
       } finally {
         setLoading(false)
+        setLoadingMore(false)
       }
     },
     [activeFilter],
@@ -128,13 +179,7 @@ function App() {
 
           return game
         })
-        .filter((game) => {
-          if (activeFilter === 'favorites') {
-            return game.favorite
-          }
-
-          return true
-        })
+        .filter((game) => matchesActiveFilter(game, activeFilter))
 
       return updatedGames
     })
@@ -192,6 +237,9 @@ function App() {
     localStorage.removeItem('access_token')
     setAuthenticated(false)
     setGames([])
+    setPage(1)
+    setHasMoreGames(false)
+    setLoadMoreError('')
     setSelectedGameId(null)
     setShowSearch(false)
     setShowStatistics(false)
@@ -254,6 +302,27 @@ function App() {
             <GameDetails
               gameId={selectedGameId}
               onClose={() => setSelectedGameId(null)}
+              onUpdated={(updatedGame) => {
+                setGames((currentGames) =>
+                  currentGames
+                    .map((game) =>
+                      game.id === updatedGame.id
+                        ? {
+                            ...game,
+                            platform: updatedGame.platform,
+                            status: updatedGame.status,
+                            game_type: updatedGame.game_type,
+                            personal_rating: updatedGame.personal_rating,
+                            hours_played: updatedGame.hours_played,
+                            favorite: updatedGame.favorite,
+                          }
+                        : game,
+                    )
+                    .filter((game) =>
+                      matchesActiveFilter(game, activeFilter),
+                    ),
+                )
+              }}
               onDeleted={() => loadGames()}
             />
           ) : showStatistics ? (
@@ -282,7 +351,9 @@ function App() {
 
               <section className="library-summary">
                 <span>
-                  {games.length} {games.length === 1 ? 'jogo' : 'jogos'}
+                  {hasMoreGames
+                    ? `Mostrando ${games.length} jogos`
+                    : `${games.length} ${games.length === 1 ? 'jogo' : 'jogos'}`}
                 </span>
               </section>
 
@@ -385,6 +456,7 @@ function App() {
                       title={game.title}
                       platform={game.platform}
                       status={game.status}
+                      gameType={game.game_type}
                       rating={game.personal_rating}
                       favorite={game.favorite}
                       coverImage={game.cover_image}
@@ -393,6 +465,23 @@ function App() {
                     />
                   ))}
                 </section>
+              )}
+
+              {!loading && hasMoreGames && games.length > 0 && (
+                <div className="load-more-games">
+                  {loadMoreError && (
+                    <p className="library-message error">{loadMoreError}</p>
+                  )}
+                  <button
+                    className="load-more-button"
+                    onClick={() =>
+                      void loadGames(activeFilter, page + 1, true)
+                    }
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? 'Carregando...' : 'Carregar mais jogos'}
+                  </button>
+                </div>
               )}
             </>
           )}

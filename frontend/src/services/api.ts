@@ -27,7 +27,12 @@ export async function login(username: string, password: string) {
   return response.json()
 }
 
-export async function getGames(status?: string, favorite?: boolean) {
+export async function getGames(
+  status?: string,
+  favorite?: boolean,
+  page = 1,
+  limit = 10,
+) {
   const params = new URLSearchParams()
 
   if (status) {
@@ -37,6 +42,10 @@ export async function getGames(status?: string, favorite?: boolean) {
   if (favorite !== undefined) {
     params.append('favorite', String(favorite))
   }
+
+  params.append('page', String(page))
+  params.append('limit', String(limit))
+  params.append('sort_by', 'title')
 
   const queryString = params.toString()
 
@@ -166,6 +175,7 @@ export async function updateGame(
   data: {
     platform?: string
     status?: string
+    game_type?: 'STANDARD' | 'ONGOING'
     personal_rating?: number | null
     hours_played?: number
     notes?: string | null
@@ -187,7 +197,12 @@ export async function updateGame(
   }
 
   if (!response.ok) {
-    throw new Error('Não foi possível atualizar o jogo.')
+    const errorBody = await response.json().catch(() => null)
+    const message =
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível atualizar o jogo.'
+    throw new Error(message)
   }
 
   return response.json()

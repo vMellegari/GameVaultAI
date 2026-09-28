@@ -8,7 +8,7 @@ load_dotenv()
 class Settings:
     DATABASE_URL = os.getenv(
         "DATABASE_URL",
-        "sqlite:///./gamevault.db"
+        "postgresql+psycopg://gamevault:gamevault@localhost:5432/gamevault"
     )
 
     RAWG_API_KEY = os.getenv(

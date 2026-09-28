@@ -938,6 +938,7 @@
 }
 
 .details-status select,
+.details-grid select,
 .details-grid input,
 .details-section textarea {
   width: 100%;
@@ -951,6 +952,7 @@
 }
 
 .details-status select:focus,
+.details-grid select:focus,
 .details-grid input:focus,
 .details-section textarea:focus {
   border-color: #6366f1;
@@ -1279,4 +1281,49 @@
 
 .logout-button:hover {
   background: #1f2937;
+}
+
+.details-header .close-button {
+  width: auto;
+  height: auto;
+  padding: 8px 12px;
+
+  border: 1px solid #303542;
+  border-radius: 7px;
+
+  background: #171a23;
+  color: #9ca3af;
+
+  font-size: 14px;
+}
+
+.details-header .close-button:hover {
+  background: #242936;
+  color: #f3f4f6;
+}
+
+.load-more-games {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.load-more-button {
+  padding: 10px 16px;
+  border: 1px solid #303542;
+  border-radius: 8px;
+  background: #171a23;
+  color: #f3f4f6;
+  cursor: pointer;
+}
+
+.load-more-button:hover:not(:disabled) {
+  background: #242936;
+}
+
+.load-more-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }

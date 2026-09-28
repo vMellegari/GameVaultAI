@@ -1,14 +1,38 @@
 # GameVault AI
 
-API para gerenciamento de uma biblioteca pessoal de jogos, com autenticação JWT,
-filtros, estatísticas e integração opcional com a RAWG.
+Aplicação full stack para gerenciamento de uma biblioteca pessoal de jogos. O
+backend usa FastAPI, SQLAlchemy e PostgreSQL; o frontend usa React, TypeScript e
+Vite. O projeto também integra a RAWG e recomendações com Google Gemini.
 
 ## Requisitos
 
-- Python 3.12 ou superior
-- Uma chave da API RAWG para usar busca, importação e refresh
+- Python 3.14.5
+- Docker Desktop com Docker Compose
+- Uma chave da API RAWG para busca, importação e atualização de dados
+- Uma chave da API Gemini para recomendações
 
 ## Configuração
+
+Inicie o PostgreSQL:
+
+```powershell
+docker compose up -d db
+```
+
+Crie o arquivo local de configuração e preencha as chaves das APIs:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Gere uma chave JWT longa e aleatória:
+
+```powershell
+python -c "import secrets; print(secrets.token_urlsafe(48))"
+```
+
+Coloque o valor gerado em `SECRET_KEY` no `.env`. `RAWG_API_KEY` e
+`GEMINI_API_KEY` habilitam as integrações correspondentes.
 
 Crie um ambiente virtual e instale as dependências:
 
@@ -18,30 +42,25 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Copie `.env.example` para `.env` e preencha pelo menos `SECRET_KEY` com um
-valor aleatório longo. `RAWG_API_KEY` é opcional para os recursos locais que
-não usam a RAWG.
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Para gerar uma chave JWT segura:
-
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
-
-O banco padrão é SQLite em `./gamevault.db`. Para outro banco, defina
-`DATABASE_URL` no `.env`.
-
 ## Banco de dados
 
-Aplicar as migrações:
+O PostgreSQL de desenvolvimento é configurado no `.env.example`. A estrutura é
+gerenciada pelo Alembic; aplique as migrações antes de iniciar a API:
 
 ```powershell
 alembic upgrade head
 ```
+
+Ao atualizar uma instalação existente, essa migração adiciona o tipo do jogo e
+classifica os registros atuais como `STANDARD`. Não é necessário apagar ou
+recriar o banco de dados.
+
+## Tipos de jogo
+
+`STANDARD` representa jogos com uma conclusão possível. `ONGOING` representa
+experiências contínuas, como MMOs e jogos de serviço; esses jogos não podem ser
+marcados como `COMPLETED`. Jogos cadastrados e importados da RAWG começam como
+`STANDARD`, e o tipo pode ser alterado nos detalhes do jogo.
 
 ## Executar a API
 
@@ -65,8 +84,8 @@ A documentação interativa fica disponível em
 pytest -q
 ```
 
-Os testes usam um banco SQLite separado e mocks para a RAWG; não fazem
-requisições reais à API externa.
+Os testes usam um banco SQLite separado e mocks para a RAWG e o Gemini; não
+fazem requisições reais às APIs externas.
 
 ## Principais endpoints
 

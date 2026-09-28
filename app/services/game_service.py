@@ -1,12 +1,16 @@
 from sqlalchemy import Date, func
 from sqlalchemy.orm import Session
 from datetime import datetime
-from app.models.enums import GameStatus, SortField
+from app.models.enums import GameStatus, GameType, SortField
 from app.models.game import Game
 from app.models.user import User
 from app.schemas.game import GameCreate, GameUpdate
 from app.schemas.rawg import RawgGameDetails
 from app.services.rawg_service import get_game_details
+
+
+class GameRuleViolation(Exception):
+    """Raised when a requested status conflicts with the game's type."""
 
 
 def create_game(db: Session, game_data: GameCreate, owner: User) -> Game:
@@ -15,7 +19,8 @@ def create_game(db: Session, game_data: GameCreate, owner: User) -> Game:
         owner_id=owner.id,
         title=game_data.title,
         platform=game_data.platform,
-        status=GameStatus.BACKLOG
+        status=GameStatus.BACKLOG,
+        game_type=game_data.game_type,
     )
     db.add(db_game)
     db.commit()
@@ -178,6 +183,17 @@ def update_game(db: Session, game_id: int, game_data: GameUpdate, owner: User) -
 
     update_data = game_data.model_dump(exclude_unset=True)
 
+    next_status = update_data.get("status", db_game.status)
+    next_game_type = update_data.get("game_type", db_game.game_type)
+
+    if (
+        next_game_type == GameType.ONGOING
+        and next_status == GameStatus.COMPLETED
+    ):
+        raise GameRuleViolation(
+            "Jogos contínuos não podem ter o status Concluído."
+        )
+
     for key, value in update_data.items():
         setattr(db_game, key, value)
 
@@ -231,6 +247,11 @@ def complete_game(db: Session, game_id: int, owner: User) -> Game | None:
 
     if not db_game:
         return None
+
+    if db_game.game_type == GameType.ONGOING:
+        raise GameRuleViolation(
+            "Jogos contínuos não podem ter o status Concluído."
+        )
 
     db_game.status = GameStatus.COMPLETED
     db_game.completed_at = datetime.now().date()

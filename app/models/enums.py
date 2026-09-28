@@ -8,6 +8,11 @@ class GameStatus(str, Enum):
     DROPPED = "DROPPED"
     WISHLIST = "WISHLIST"
 
+
+class GameType(str, Enum):
+    STANDARD = "STANDARD"
+    ONGOING = "ONGOING"
+
 class SortField(str, Enum):
     TITLE = "title"
     CREATED_AT = "created_at"

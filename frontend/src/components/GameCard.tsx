@@ -6,6 +6,7 @@ interface GameCardProps {
   title: string
   platform: string
   status: string
+  gameType: 'STANDARD' | 'ONGOING'
   rating?: number | null
   favorite?: boolean
   coverImage?: string | null
@@ -18,6 +19,7 @@ function GameCard({
   title,
   platform,
   status,
+  gameType,
   rating,
   favorite = false,
   coverImage,
@@ -125,7 +127,7 @@ function GameCard({
             </button>
           )}
 
-          {status === 'PLAYING' && (
+          {status === 'PLAYING' && gameType === 'STANDARD' && (
             <button
               className="game-action-button"
               onClick={handleComplete}

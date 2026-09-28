@@ -170,8 +170,15 @@ def refresh_game(game_id: int, db: Session = Depends(get_db), current_user: User
     description="Permite atualizar as informações de um jogo cadastrado no banco de dados com base no ID do jogo."
 )
 def update_game(game_id: int, game_data: GameUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    game = game_service.update_game(
-        db=db, game_id=game_id, game_data=game_data, owner=current_user)
+    try:
+        game = game_service.update_game(
+            db=db, game_id=game_id, game_data=game_data, owner=current_user)
+    except game_service.GameRuleViolation as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
+
     if not game:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -205,8 +212,14 @@ def start_game(game_id: int, db: Session = Depends(get_db), current_user: User =
     description="Toggle para marcar um jogo como completo no banco de dados com base no ID do jogo."
 )
 def complete_game(game_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    game = game_service.complete_game(
-        db=db, game_id=game_id, owner=current_user)
+    try:
+        game = game_service.complete_game(
+            db=db, game_id=game_id, owner=current_user)
+    except game_service.GameRuleViolation as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
 
     if not game:
         raise HTTPException(

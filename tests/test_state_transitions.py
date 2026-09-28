@@ -47,6 +47,66 @@ def test_update_completed_status_sets_completed_at(
     )
 
 
+def test_games_default_to_standard_type(client, create_game, auth_headers):
+    game = create_game(title="Standard Game")
+
+    response = client.get(f"/games/{game['id']}", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["game_type"] == "STANDARD"
+
+
+def test_ongoing_game_cannot_be_completed(client, create_game, auth_headers):
+    game = create_game(title="Ongoing Game", game_type="ONGOING")
+
+    response = client.patch(
+        f"/games/{game['id']}/complete",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == (
+        "Jogos contínuos não podem ter o status Concluído."
+    )
+
+
+def test_ongoing_game_cannot_receive_completed_status(
+    client,
+    create_game,
+    auth_headers,
+):
+    game = create_game(title="Ongoing Game", game_type="ONGOING")
+
+    response = client.patch(
+        f"/games/{game['id']}",
+        json={"status": "COMPLETED"},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 422
+
+
+def test_completed_game_cannot_be_changed_to_ongoing_directly(
+    client,
+    create_game,
+    auth_headers,
+):
+    game = create_game(title="Completed Game")
+    complete_response = client.patch(
+        f"/games/{game['id']}/complete",
+        headers=auth_headers,
+    )
+    assert complete_response.status_code == 200
+
+    response = client.patch(
+        f"/games/{game['id']}",
+        json={"game_type": "ONGOING"},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 422
+
+
 def test_update_status_rejects_unknown_value(client, create_game, auth_headers):
     game = create_game(title="Validated Game")
 
