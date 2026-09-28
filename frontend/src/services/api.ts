@@ -81,11 +81,17 @@ export async function searchGames(query: string) {
   return response.json()
 }
 
-export async function importGame(rawgId: number) {
-  const response = await fetch(`${API_URL}/games/import/${rawgId}`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-  })
+export async function importGame(
+  rawgId: number,
+  gameType: 'STANDARD' | 'ONGOING' = 'STANDARD',
+) {
+  const response = await fetch(
+    `${API_URL}/games/import/${rawgId}?game_type=${gameType}`,
+    {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    },
+  )
 
   if (response.status === 401) {
     localStorage.removeItem('access_token')
@@ -93,7 +99,8 @@ export async function importGame(rawgId: number) {
   }
 
   if (!response.ok) {
-    throw new Error('Não foi possível importar o jogo.')
+    const data = await response.json().catch(() => null)
+    throw new Error(data?.detail || 'Não foi possível importar o jogo.')
   }
 
   return response.json()

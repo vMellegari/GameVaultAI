@@ -1,0 +1,82 @@
+/* Elementos compartilhados entre telas */
+
+.library-message {
+  padding: 60px 20px;
+
+  border: 1px dashed #303542;
+  border-radius: 12px;
+
+  text-align: center;
+
+  background: #151821;
+}
+
+.library-message h3 {
+  margin: 0 0 8px;
+
+  color: #f3f4f6;
+  font-size: 20px;
+}
+
+.library-message p {
+  margin: 0;
+
+  color: #9ca3af;
+}
+
+.library-message.error {
+  border-style: solid;
+  border-color: #7f1d1d;
+}
+
+.close-button {
+  width: 36px;
+  height: 36px;
+
+  border: 1px solid #303542;
+  border-radius: 8px;
+
+  background: #171a23;
+  color: #9ca3af;
+
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background: #242936;
+  color: white;
+}
+
+.action-message {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  z-index: 1000;
+
+  padding: 12px 16px;
+  border: 1px solid #303542;
+  border-radius: 8px;
+
+  background: #171a22;
+  color: #e5e7eb;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+
+  animation: toast-in 0.2s ease;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+

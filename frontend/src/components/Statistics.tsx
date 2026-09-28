@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { getGameStats } from '../services/api'
+import './Statistics.css'
 
 interface GameStats {
   total_games: number

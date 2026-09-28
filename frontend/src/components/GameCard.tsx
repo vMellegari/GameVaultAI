@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { completeGame, startGame, toggleFavorite } from '../services/api'
+import './GameCard.css'
 
 interface GameCardProps {
   id: number

@@ -92,7 +92,8 @@ def apply_rawg_data(game: Game, game_details: RawgGameDetails):
 def import_game_from_rawg(
     db: Session,
     rawg_id: int,
-    owner: User
+    owner: User,
+    game_type: GameType = GameType.STANDARD,
 ):
     """Importa um jogo com os dados da RAWG para o banco de dados."""
 
@@ -119,7 +120,16 @@ def import_game_from_rawg(
     ).first()
 
     if manual_game:
+        if (
+            game_type == GameType.ONGOING
+            and manual_game.status == GameStatus.COMPLETED
+        ):
+            raise GameRuleViolation(
+                "Um jogo concluído não pode ser importado como experiência contínua."
+            )
+
         apply_rawg_data(manual_game, game_details)
+        manual_game.game_type = game_type
 
         db.commit()
         db.refresh(manual_game)
@@ -130,7 +140,8 @@ def import_game_from_rawg(
     # cria um novo registro
     db_game = Game(
         owner_id=owner.id,
-        status=GameStatus.BACKLOG
+        status=GameStatus.BACKLOG,
+        game_type=game_type,
     )
 
     apply_rawg_data(db_game, game_details)

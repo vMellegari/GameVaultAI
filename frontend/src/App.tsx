@@ -7,6 +7,7 @@ import Statistics from './components/Statistics'
 import { getGames, getRecommendations, importGame } from './services/api'
 import RecommendationList from './components/RecommendationList'
 import './App.css'
+import './styles/shared.css'
 
 interface Game {
   id: number

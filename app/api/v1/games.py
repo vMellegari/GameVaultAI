@@ -5,7 +5,7 @@ from typing import List
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
-from app.models.enums import GameStatus, SortField
+from app.models.enums import GameStatus, GameType, SortField
 from app.schemas.game import GameCreate, GameResponse, GameUpdate
 from app.schemas.stats import GameStats
 from app.schemas.rawg import RawgGame
@@ -128,12 +128,24 @@ def get_game(game_id: int, db: Session = Depends(get_db), current_user: User = D
     summary="Importar um jogo da RAWG",
     description="Permite importar um jogo da API da RAWG para o banco de dados com base no ID da RAWG fornecido."
 )
-def import_game(rawg_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    game = game_service.import_game_from_rawg(
-        db=db,
-        rawg_id=rawg_id,
-        owner=current_user
-    )
+def import_game(
+    rawg_id: int,
+    game_type: GameType = Query(default=GameType.STANDARD),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        game = game_service.import_game_from_rawg(
+            db=db,
+            rawg_id=rawg_id,
+            owner=current_user,
+            game_type=game_type,
+        )
+    except game_service.GameRuleViolation as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
 
     if not game:
         raise HTTPException(

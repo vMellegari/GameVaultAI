@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { deleteGame, getGame, updateGame } from '../services/api'
+import './GameDetails.css'
 
 interface Game {
   id: number

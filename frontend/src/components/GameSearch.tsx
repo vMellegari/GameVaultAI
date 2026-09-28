@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { importGame, searchGames } from '../services/api'
+import './GameSearch.css'
+
+type GameType = 'STANDARD' | 'ONGOING'
 
 interface SearchResult {
   rawg_id: number
@@ -18,6 +21,7 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [importingId, setImportingId] = useState<number | null>(null)
+  const [gameTypes, setGameTypes] = useState<Record<number, GameType>>({})
   const [error, setError] = useState('')
 
   async function handleSearch(event: FormEvent) {
@@ -46,13 +50,15 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
     setError('')
 
     try {
-      await importGame(rawgId)
+      await importGame(rawgId, gameTypes[rawgId] ?? 'STANDARD')
 
       onClose()
       onImported()
     } catch (err) {
       if (err instanceof Error && err.message === 'Sessão expirada.') {
         setError('Sua sessão expirou. Faça login novamente.')
+      } else if (err instanceof Error) {
+        setError(err.message)
       } else {
         setError('Não foi possível importar o jogo.')
       }
@@ -117,13 +123,31 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
               {game.released && <p>Lançamento: {game.released}</p>}
             </div>
 
-            <button
-              className="import-button"
-              onClick={() => handleImport(game.rawg_id)}
-              disabled={importingId === game.rawg_id}
-            >
-              {importingId === game.rawg_id ? 'Adicionando...' : 'Adicionar'}
-            </button>
+            <div className="search-result-actions">
+              <label className="game-type-label">
+                Tipo
+                <select
+                  value={gameTypes[game.rawg_id] ?? 'STANDARD'}
+                  onChange={(event) =>
+                    setGameTypes((current) => ({
+                      ...current,
+                      [game.rawg_id]: event.target.value as GameType,
+                    }))
+                  }
+                  disabled={importingId === game.rawg_id}
+                >
+                  <option value="STANDARD">Tradicional</option>
+                  <option value="ONGOING">Contínua</option>
+                </select>
+              </label>
+              <button
+                className="import-button"
+                onClick={() => handleImport(game.rawg_id)}
+                disabled={importingId === game.rawg_id}
+              >
+                {importingId === game.rawg_id ? 'Adicionando...' : 'Adicionar'}
+              </button>
+            </div>
           </article>
         ))}
       </div>
