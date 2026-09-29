@@ -30,6 +30,10 @@
   background: #171a23;
 }
 
+.activity-filters {
+  align-items: end;
+}
+
 .activity-filters label,
 .activity-edit-form label {
   display: flex;
@@ -42,7 +46,9 @@
 .activity-filters input,
 .activity-edit-form input,
 .activity-edit-form textarea {
+  box-sizing: border-box;
   min-width: 0;
+  min-height: 38px;
   padding: 8px 9px;
   border: 1px solid #353a49;
   border-radius: 6px;
@@ -56,6 +62,7 @@
 .activity-edit-form input:focus,
 .activity-edit-form textarea:focus {
   border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 16%);
 }
 
 .activity-filter-actions,
@@ -63,6 +70,14 @@
   display: flex;
   align-items: end;
   gap: 8px;
+}
+
+.activity-filter-actions {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #292d38;
 }
 
 .activity-filter-actions button,
@@ -76,6 +91,16 @@
   color: #e5e7eb;
   font-weight: 600;
   cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease,
+    transform 0.16s ease;
+}
+
+.activity-filter-actions button:hover:not(:disabled),
+.session-insights-header button:hover:not(:disabled),
+.activity-edit-actions button:hover:not(:disabled),
+.activity-edit-button:hover {
+  border-color: #7779f5;
+  background: #2a2d43;
 }
 
 .activity-filter-actions button:first-child,
@@ -84,6 +109,22 @@
   border-color: #5558d9;
   background: #4f52c8;
   color: #fff;
+}
+
+.activity-filter-actions button:first-child:hover:not(:disabled),
+.session-insights-header button:hover:not(:disabled),
+.activity-edit-actions button:first-child:hover:not(:disabled) {
+  background: #6264e8;
+}
+
+.activity-filter-actions button:focus-visible,
+.session-insights-header button:focus-visible,
+.activity-edit-actions button:focus-visible,
+.activity-edit-button:focus-visible,
+.activity-open-game:focus-visible,
+.activity-load-more:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
 }
 
 .activity-filter-actions button:disabled,
@@ -363,9 +404,33 @@
   font-size: 14px;
 }
 
+.activity-empty-reset {
+  margin-top: 16px;
+  padding: 8px 12px;
+  border: 1px solid #5558d9;
+  border-radius: 7px;
+  background: #4f52c8;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.activity-empty-reset:hover {
+  background: #6264e8;
+}
+
+.activity-empty-reset:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
 @media (max-width: 900px) {
   .activity-filters {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .activity-filter-actions {
+    grid-column: 1 / -1;
   }
 }
 

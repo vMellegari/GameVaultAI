@@ -191,6 +191,11 @@ function ActivityTimeline({
       return
     }
 
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+      setError('A data inicial deve ser anterior ou igual à data final.')
+      return
+    }
+
     const filters = {
       game_title: gameTitle.trim() || undefined,
       date_from: dateFrom
@@ -299,6 +304,10 @@ function ActivityTimeline({
       setAnalyzingNotes(false)
     }
   }
+
+  const hasAppliedFilters = Object.values(appliedFilters).some(
+    (value) => value !== undefined,
+  )
 
   return (
     <section className="activity-page">
@@ -411,8 +420,25 @@ function ActivityTimeline({
       ) : sessions.length === 0 ? (
         <div className="activity-empty">
           <span aria-hidden="true">🕹️</span>
-          <h3>Nenhuma sessão registrada</h3>
-          <p>Registre uma sessão nos detalhes de um jogo para vê-la aqui.</p>
+          <h3>
+            {hasAppliedFilters
+              ? 'Nenhuma sessão encontrada'
+              : 'Nenhuma sessão registrada'}
+          </h3>
+          <p>
+            {hasAppliedFilters
+              ? 'Tente ajustar os filtros ou limpe-os para ver toda a atividade.'
+              : 'Registre uma sessão nos detalhes de um jogo para vê-la aqui.'}
+          </p>
+          {hasAppliedFilters && (
+            <button
+              type="button"
+              className="activity-empty-reset"
+              onClick={handleResetFilters}
+            >
+              Limpar filtros
+            </button>
+          )}
         </div>
       ) : (
         <>
