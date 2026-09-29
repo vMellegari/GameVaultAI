@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   analyzeGameSessionNotes,
   getGameSessionImage,
@@ -130,6 +130,7 @@ function ActivityTimeline({
     min_duration?: number
     max_duration?: number
   }>({})
+  const appliedFiltersRef = useRef(appliedFilters)
   const [editingSessionId, setEditingSessionId] = useState<number | null>(null)
   const [editPlayedAt, setEditPlayedAt] = useState('')
   const [editDuration, setEditDuration] = useState('')
@@ -142,10 +143,10 @@ function ActivityTimeline({
     sessions_analyzed: number
   } | null>(null)
 
-  async function loadPage(
+  const loadPage = useCallback(async (
     nextPage: number,
-    filters = appliedFilters,
-  ) {
+    filters = appliedFiltersRef.current,
+  ) => {
     const isFirstPage = nextPage === 1
     if (isFirstPage) {
       setLoading(true)
@@ -171,11 +172,12 @@ function ActivityTimeline({
       setLoading(false)
       setLoadingMore(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    void loadPage(1)
-  }, [])
+    const timeoutId = window.setTimeout(() => void loadPage(1), 0)
+    return () => window.clearTimeout(timeoutId)
+  }, [loadPage])
 
   function handleApplyFilters(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -212,6 +214,7 @@ function ActivityTimeline({
       max_duration: maximum,
     }
 
+    appliedFiltersRef.current = filters
     setAppliedFilters(filters)
     setSessions([])
     void loadPage(1, filters)
@@ -223,6 +226,7 @@ function ActivityTimeline({
     setDateTo('')
     setMinDuration('')
     setMaxDuration('')
+    appliedFiltersRef.current = {}
     setAppliedFilters({})
     setSessions([])
     void loadPage(1, {})

@@ -25,7 +25,7 @@
 .search-header p {
   margin: 0;
 
-  color: #9ca3af;
+  color: var(--gv-text-muted);
 }
 
 .game-search-form {
@@ -40,19 +40,19 @@
 
   padding: 12px 14px;
 
-  border: 1px solid #303542;
+  border: 1px solid var(--gv-border);
   border-radius: 8px;
 
   outline: none;
 
-  background: #151821;
-  color: #f3f4f6;
+  background: var(--gv-surface);
+  color: var(--gv-text);
 
   font-size: 15px;
 }
 
 .game-search-form input:focus {
-  border-color: #6366f1;
+  border-color: var(--gv-accent);
 }
 
 .game-search-form button {
@@ -61,7 +61,7 @@
   border: 0;
   border-radius: 8px;
 
-  background: #6366f1;
+  background: var(--gv-accent);
   color: white;
 
   font-weight: bold;
@@ -69,7 +69,7 @@
 }
 
 .game-search-form button:hover {
-  background: #5558d9;
+  background: var(--gv-accent-hover);
 }
 
 .game-search-form button:disabled {
@@ -80,18 +80,18 @@
 .search-error {
   margin: 0 0 20px;
 
-  color: #f87171;
+  color: var(--gv-danger);
 }
 
 .search-empty {
   padding: 70px 20px;
 
-  border: 1px dashed #303542;
+  border: 1px dashed var(--gv-border);
   border-radius: 12px;
 
   text-align: center;
 
-  background: #151821;
+  background: var(--gv-surface);
 }
 
 .search-empty span {
@@ -105,7 +105,7 @@
 .search-empty p {
   margin: 0;
 
-  color: #9ca3af;
+  color: var(--gv-text-muted);
 }
 
 .search-results {
@@ -123,10 +123,10 @@
 
   padding: 12px;
 
-  border: 1px solid #292d38;
+  border: 1px solid var(--gv-border);
   border-radius: 10px;
 
-  background: #171a23;
+  background: var(--gv-surface);
 }
 
 .search-result-actions {
@@ -140,17 +140,17 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  color: #8b93a5;
+  color: var(--gv-text-muted);
   font-size: 12px;
 }
 
 .game-type-label select {
   height: 36px;
   padding: 0 10px;
-  border: 1px solid #353a49;
+  border: 1px solid var(--gv-border);
   border-radius: 7px;
-  background: #222633;
-  color: #f3f4f6;
+  background: var(--gv-surface-raised);
+  color: var(--gv-text);
 }
 
 .search-result-cover {
@@ -167,7 +167,7 @@
 
   border-radius: 6px;
 
-  background: #222633;
+  background: var(--gv-surface-raised);
 }
 
 .search-result-cover img {
@@ -189,14 +189,14 @@
 .search-result-info h3 {
   margin: 0 0 6px;
 
-  color: #f3f4f6;
+  color: var(--gv-text);
   font-size: 16px;
 }
 
 .search-result-info p {
   margin: 0;
 
-  color: #8b93a5;
+  color: var(--gv-text-muted);
   font-size: 13px;
 }
 
@@ -205,7 +205,7 @@
   padding: 0 14px;
   border: 0;
   border-radius: 7px;
-  background: #6366f1;
+  background: var(--gv-accent);
   color: white;
   font-weight: bold;
   white-space: nowrap;
@@ -213,7 +213,7 @@
 }
 
 .import-button:hover {
-  background: #5558d9;
+  background: var(--gv-accent-hover);
 }
 
 .import-button:disabled {

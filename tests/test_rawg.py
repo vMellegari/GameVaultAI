@@ -47,7 +47,7 @@ def test_search_games_returns_normalized_rawg_results(client, monkeypatch):
     ]
 
 
-def test_search_games_returns_empty_list_on_rawg_timeout(client, monkeypatch):
+def test_search_games_reports_rawg_timeout(client, monkeypatch):
     monkeypatch.setattr(
         "app.services.rawg_service.requests.get",
         Mock(side_effect=requests.exceptions.Timeout)
@@ -55,8 +55,8 @@ def test_search_games_returns_empty_list_on_rawg_timeout(client, monkeypatch):
 
     response = client.get("/games/search?query=timeout")
 
-    assert response.status_code == 200
-    assert response.json() == []
+    assert response.status_code == 504
+    assert "RAWG demorou" in response.json()["detail"]
 
 
 def test_import_game_persists_rawg_details(client, auth_headers, monkeypatch):

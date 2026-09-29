@@ -1,12 +1,15 @@
 /* Cards e ações da biblioteca */
 
 .game-card {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 
-  border: 1px solid #292d38;
-  border-radius: 12px;
+  border: 1px solid rgb(144 155 173 / 13%);
+  border-radius: var(--gv-radius-md);
 
-  background: #171a23;
+  background: linear-gradient(155deg, #191e29, #141821 72%);
+  box-shadow: 0 5px 18px rgb(0 0 0 / 10%);
 
   transition:
     transform 0.2s ease,
@@ -15,19 +18,20 @@
 
 .game-card:hover {
   transform: translateY(-3px);
-  border-color: #454b5c;
+  border-color: rgb(119 120 246 / 46%);
+  box-shadow: var(--gv-shadow-card);
 }
 
 .game-cover {
   position: relative;
 
-  height: 260px;
+  aspect-ratio: 3 / 4;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background: #222633;
+  background: var(--gv-surface-raised);
 }
 
 .game-cover-placeholder {
@@ -49,24 +53,30 @@
   border-radius: 50%;
   background: #11141c;
 
-  color: #facc15;
+  color: var(--gv-warning);
 }
 
 .game-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 16px;
 }
 
 .game-info h3 {
   margin: 0 0 6px;
 
-  color: #f3f4f6;
+  color: var(--gv-text);
   font-size: 17px;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
 }
 
 .game-platform {
   margin: 0 0 14px;
 
-  color: #8b93a5;
+  color: var(--gv-text-muted);
   font-size: 14px;
 }
 
@@ -83,20 +93,24 @@
 
   border-radius: 6px;
 
-  background: #252a38;
-  color: #cbd5e1;
+  background: var(--gv-border);
+  color: var(--gv-text-secondary);
 
   font-size: 12px;
 }
 
 .game-rating {
-  color: #facc15;
+  color: var(--gv-warning);
   font-size: 13px;
 }
 
 @media (max-width: 700px) {
-  .game-cover {
-    height: 220px;
+  .game-info {
+    padding: 12px;
+  }
+
+  .game-info h3 {
+    font-size: 15px;
   }
 }
 
@@ -110,7 +124,10 @@
 }
 
 .game-actions {
-  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
 }
 
 .game-action-button {
@@ -118,11 +135,11 @@
 
   padding: 9px 12px;
 
-  border: 1px solid #303542;
+  border: 1px solid var(--gv-border);
   border-radius: 7px;
 
-  background: #1d212c;
-  color: #e5e7eb;
+  background: var(--gv-surface-raised);
+  color: var(--gv-text-secondary);
 
   font-size: 13px;
   font-weight: bold;
@@ -131,7 +148,7 @@
 }
 
 .game-action-button:hover {
-  background: #292e3c;
+  background: var(--gv-surface-hover);
 }
 
 .game-action-button:disabled {
@@ -147,7 +164,7 @@
   border-radius: 7px;
 
   background: #1d2a25;
-  color: #86efac;
+  color: var(--gv-positive);
 
   font-size: 13px;
   text-align: center;
@@ -164,12 +181,12 @@
 }
 
 .favorite-active {
-  color: #facc15;
+  color: var(--gv-warning);
 }
 
 .game-action-message {
   margin: 8px 0 0;
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 13px;
 }
 

@@ -3,9 +3,9 @@
 .game-sessions {
   margin-top: 24px;
   padding: 22px;
-  border: 1px solid #292d38;
+  border: 1px solid var(--gv-border);
   border-radius: 12px;
-  background: #171a23;
+  background: var(--gv-surface);
 }
 
 .game-sessions-header {
@@ -18,19 +18,19 @@
 
 .game-sessions-header h3 {
   margin: 0 0 6px;
-  color: #f3f4f6;
+  color: var(--gv-text);
   font-size: 18px;
 }
 
 .game-sessions-header p,
 .game-session-history > p {
   margin: 0;
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 14px;
 }
 
 .game-sessions-header > span {
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 13px;
   white-space: nowrap;
 }
@@ -41,7 +41,7 @@
   gap: 14px;
   padding: 16px;
   border-radius: 9px;
-  background: #1d212c;
+  background: var(--gv-surface-raised);
 }
 
 .game-session-fields {
@@ -54,7 +54,7 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  color: #d1d5db;
+  color: var(--gv-text-secondary);
   font-size: 13px;
 }
 
@@ -62,17 +62,17 @@
 .game-session-form textarea {
   width: 100%;
   padding: 10px 11px;
-  border: 1px solid #353a49;
+  border: 1px solid var(--gv-border);
   border-radius: 7px;
   outline: none;
-  background: #151821;
-  color: #f3f4f6;
+  background: var(--gv-surface);
+  color: var(--gv-text);
   font: inherit;
 }
 
 .game-session-form input:focus,
 .game-session-form textarea:focus {
-  border-color: #6366f1;
+  border-color: var(--gv-accent);
 }
 
 .game-session-form textarea {
@@ -84,14 +84,14 @@
   padding: 10px 14px;
   border: 0;
   border-radius: 7px;
-  background: #6366f1;
+  background: var(--gv-accent);
   color: white;
   font-weight: 600;
   cursor: pointer;
 }
 
 .game-session-submit:hover:not(:disabled) {
-  background: #5558d9;
+  background: var(--gv-accent-hover);
 }
 
 .game-session-submit:disabled,
@@ -119,9 +119,9 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px;
-  border: 1px solid #292d38;
+  border: 1px solid var(--gv-border);
   border-radius: 8px;
-  background: #151821;
+  background: var(--gv-surface);
 }
 
 .game-session-item > div {
@@ -133,7 +133,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
-  color: #d1d5db;
+  color: var(--gv-text-secondary);
   font-size: 14px;
 }
 
@@ -143,7 +143,7 @@
 
 .game-session-item p {
   margin: 8px 0 0;
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 14px;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -160,9 +160,9 @@
   width: 150px;
   margin: 0;
   overflow: hidden;
-  border: 1px solid #353a49;
+  border: 1px solid var(--gv-border);
   border-radius: 8px;
-  background: #1d212c;
+  background: var(--gv-surface-raised);
 }
 
 .game-session-image img,
@@ -179,7 +179,7 @@
 .game-session-image-loading {
   display: grid;
   place-items: center;
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 11px;
 }
 
@@ -193,7 +193,7 @@
 
 .game-session-image figcaption span {
   overflow: hidden;
-  color: #cbd5e1;
+  color: var(--gv-text-secondary);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -205,7 +205,7 @@
   border: 1px solid #7f1d1d;
   border-radius: 5px;
   background: #24171a;
-  color: #fca5a5;
+  color: var(--gv-danger);
   font-size: 11px;
   cursor: pointer;
 }
@@ -228,20 +228,20 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 12px;
 }
 
 .game-session-image-upload input {
   max-width: 260px;
-  color: #cbd5e1;
+  color: var(--gv-text-secondary);
   font-size: 12px;
 }
 
 .game-session-image-upload button {
-  border-color: #3f46a7;
-  background: #252844;
-  color: #c7d2fe;
+  border-color: var(--gv-accent);
+  background: var(--gv-accent-soft);
+  color: var(--gv-accent-text);
 }
 
 .game-session-delete {
@@ -250,7 +250,7 @@
   border: 1px solid #7f1d1d;
   border-radius: 6px;
   background: #24171a;
-  color: #fca5a5;
+  color: var(--gv-danger);
   cursor: pointer;
 }
 
@@ -260,7 +260,7 @@
 
 .game-sessions-error {
   margin: 0 0 14px;
-  color: #f87171;
+  color: var(--gv-danger);
   font-size: 14px;
 }
 

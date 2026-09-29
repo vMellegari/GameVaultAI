@@ -13,13 +13,13 @@
 
 .statistics-header h2 {
   margin: 0 0 8px;
-  color: #f3f4f6;
+  color: var(--gv-text);
   font-size: 28px;
 }
 
 .statistics-header p {
   margin: 0;
-  color: #9ca3af;
+  color: var(--gv-text-muted);
 }
 
 .statistics-grid {
@@ -33,17 +33,17 @@
   align-items: center;
   gap: 16px;
   padding: 20px;
-  border: 1px solid #292d38;
+  border: 1px solid var(--gv-border);
   border-radius: 10px;
-  background: #171a23;
+  background: var(--gv-surface);
 }
 
 .statistics-summary {
   margin-top: 24px;
   padding: 20px;
-  border: 1px solid #252a36;
+  border: 1px solid var(--gv-border);
   border-radius: 10px;
-  background: #151821;
+  background: var(--gv-surface);
 }
 
 .statistics-summary-header {
@@ -60,7 +60,7 @@
 }
 
 .statistics-summary-header span {
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 14px;
 }
 
@@ -78,12 +78,12 @@
 }
 
 .statistics-status-item span {
-  color: #d1d5db;
+  color: var(--gv-text-secondary);
   font-size: 14px;
 }
 
 .statistics-status-item strong {
-  color: #f3f4f6;
+  color: var(--gv-text);
 }
 
 .statistics-progress {
@@ -91,13 +91,13 @@
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: #252a36;
+  background: var(--gv-border);
 }
 
 .statistics-progress-fill {
   height: 100%;
   border-radius: inherit;
-  background: #6366f1;
+  background: var(--gv-accent);
   transition: width 0.3s ease;
 }
 
@@ -108,9 +108,9 @@
 .session-statistics {
   margin-top: 24px;
   padding: 20px;
-  border: 1px solid #292d38;
+  border: 1px solid var(--gv-border);
   border-radius: 10px;
-  background: #151821;
+  background: var(--gv-surface);
 }
 
 .session-statistics-heading {
@@ -123,13 +123,13 @@
 
 .session-statistics-heading h3 {
   margin: 0 0 6px;
-  color: #f3f4f6;
+  color: var(--gv-text);
 }
 
 .session-statistics-heading p,
 .session-top-games > p {
   margin: 0;
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 13px;
 }
 
@@ -141,12 +141,12 @@
 }
 
 .session-stat-total strong {
-  color: #c7d2fe;
+  color: var(--gv-accent-text);
   font-size: 24px;
 }
 
 .session-stat-total span {
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 12px;
 }
 
@@ -160,15 +160,15 @@
 .session-top-games {
   min-width: 0;
   padding: 16px;
-  border: 1px solid #292d38;
+  border: 1px solid var(--gv-border);
   border-radius: 9px;
-  background: #171a23;
+  background: var(--gv-surface);
 }
 
 .session-chart-panel h4,
 .session-top-games h4 {
   margin: 0 0 16px;
-  color: #d1d5db;
+  color: var(--gv-text-secondary);
   font-size: 14px;
 }
 
@@ -189,13 +189,13 @@
   align-items: center;
   justify-content: flex-end;
   gap: 5px;
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 10px;
 }
 
 .session-month-column > span {
   min-height: 12px;
-  color: #c7d2fe;
+  color: var(--gv-accent-text);
   font-size: 9px;
 }
 
@@ -211,14 +211,14 @@
   align-items: flex-end;
   overflow: hidden;
   border-radius: 5px 5px 0 0;
-  background: #202431;
+  background: var(--gv-surface-raised);
 }
 
 .session-month-bar {
   width: 100%;
   min-height: 0;
   border-radius: 5px 5px 0 0;
-  background: linear-gradient(180deg, #818cf8, #4f46e5);
+  background: linear-gradient(180deg, #818cf8, var(--gv-accent));
 }
 
 .session-top-games ol {
@@ -247,26 +247,26 @@
 
 .session-top-games li strong {
   overflow: hidden;
-  color: #e5e7eb;
+  color: var(--gv-text-secondary);
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .session-top-games li span {
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   font-size: 11px;
 }
 
 .session-top-games li b {
   flex: 0 0 auto;
-  color: #c7d2fe;
+  color: var(--gv-accent-text);
   font-size: 13px;
 }
 
 .session-stats-error {
   margin: 18px 0 0;
-  color: #fca5a5;
+  color: var(--gv-danger);
   font-size: 13px;
 }
 
@@ -281,13 +281,13 @@
 
 .stat-card strong {
   margin-bottom: 6px;
-  color: #8b93a5;
+  color: var(--gv-text-muted);
   font-size: 13px;
   font-weight: normal;
 }
 
 .stat-card div > span {
-  color: #f3f4f6;
+  color: var(--gv-text);
   font-size: 24px;
   font-weight: bold;
 }

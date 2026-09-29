@@ -1,7 +1,7 @@
 .recommendations {
   margin: 24px 0 36px;
   padding-bottom: 28px;
-  border-bottom: 1px solid #2d3342;
+  border-bottom: 1px solid var(--gv-border);
 }
 
 .recommendations-header {
@@ -14,7 +14,7 @@
 
 .recommendations-header p {
   margin: 0;
-  color: #9da5b4;
+  color: var(--gv-text-muted);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -24,7 +24,7 @@
   padding: 8px 12px;
   border: 0;
   border-radius: 8px;
-  background: #6366f1;
+  background: var(--gv-accent);
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -32,7 +32,7 @@
 
 .ai-recommendations-loading {
   margin: 0 0 20px;
-  color: #9da5b4;
+  color: var(--gv-text-muted);
   font-size: 14px;
 }
 
@@ -48,9 +48,9 @@
   flex-direction: column;
   padding: 0;
   overflow: hidden;
-  border: 1px solid #2d3342;
+  border: 1px solid var(--gv-border);
   border-radius: 14px;
-  background: #171a22;
+  background: var(--gv-surface);
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -59,7 +59,7 @@
 
 .recommendation-card:hover {
   transform: translateY(-3px);
-  border-color: #46506a;
+  border-color: var(--gv-border-strong);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
@@ -85,13 +85,13 @@
 
 .recommendation-genres {
   margin: 0 0 14px;
-  color: #9da5b4;
+  color: var(--gv-text-muted);
   font-size: 14px;
 }
 
 .recommendation-reason-label {
   margin-bottom: 6px;
-  color: #9da5b4;
+  color: var(--gv-text-muted);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -100,7 +100,7 @@
 
 .recommendation-reason {
   margin: 0 0 18px;
-  color: #d8dce5;
+  color: var(--gv-text-secondary);
   line-height: 1.55;
   font-size: 14px;
 }
@@ -109,10 +109,10 @@
   width: 100%;
   margin-top: auto;
   padding: 9px 12px;
-  border: 1px solid #303542;
+  border: 1px solid var(--gv-border);
   border-radius: 7px;
-  background: #1d212c;
-  color: #e5e7eb;
+  background: var(--gv-surface-raised);
+  color: var(--gv-text-secondary);
   font-size: 13px;
   font-weight: bold;
   cursor: pointer;
@@ -120,7 +120,7 @@
 }
 
 .add-recommendation-button:hover {
-  background: #242936;
+  background: var(--gv-surface-hover);
 }
 
 @media (min-width: 1001px) {

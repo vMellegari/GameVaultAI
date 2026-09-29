@@ -9,7 +9,7 @@
 
   padding: 20px;
 
-  background: #0f1117;
+  background: var(--gv-canvas);
 }
 
 .login-card {
@@ -18,10 +18,10 @@
 
   padding: 36px;
 
-  border: 1px solid #292d38;
+  border: 1px solid var(--gv-border);
   border-radius: 14px;
 
-  background: #171a23;
+  background: var(--gv-surface);
 }
 
 .login-logo {
@@ -34,7 +34,7 @@
 .login-card h1 {
   margin: 0;
 
-  color: #f3f4f6;
+  color: var(--gv-text);
   font-size: 26px;
   text-align: center;
 }
@@ -42,7 +42,7 @@
 .login-card > p {
   margin: 10px 0 28px;
 
-  color: #9ca3af;
+  color: var(--gv-text-muted);
   text-align: center;
   line-height: 1.5;
 }
@@ -58,7 +58,7 @@
   flex-direction: column;
   gap: 8px;
 
-  color: #d1d5db;
+  color: var(--gv-text-secondary);
   font-size: 14px;
 }
 
@@ -67,17 +67,17 @@
 
   padding: 11px 12px;
 
-  border: 1px solid #303542;
+  border: 1px solid var(--gv-border);
   border-radius: 8px;
 
   outline: none;
 
-  background: #10131a;
-  color: #f3f4f6;
+  background: var(--gv-canvas);
+  color: var(--gv-text);
 }
 
 .login-card input:focus {
-  border-color: #6366f1;
+  border-color: var(--gv-accent);
 }
 
 .login-button {
@@ -88,7 +88,7 @@
   border: 0;
   border-radius: 8px;
 
-  background: #6366f1;
+  background: var(--gv-accent);
   color: white;
 
   font-weight: bold;
@@ -97,7 +97,7 @@
 }
 
 .login-button:hover {
-  background: #5558d9;
+  background: var(--gv-accent-hover);
 }
 
 .login-button:disabled {
@@ -108,7 +108,7 @@
 .login-error {
   margin: 0;
 
-  color: #f87171;
+  color: var(--gv-danger);
   font-size: 14px;
 }
 

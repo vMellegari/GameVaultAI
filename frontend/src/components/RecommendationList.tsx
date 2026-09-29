@@ -19,7 +19,7 @@ interface Game {
 interface RecommendationListProps {
   recommendations: Recommendation[]
   games: Game[]
-  onAddToLibrary: (rawgId: number) => Promise<void>
+  onAddToLibrary: (rawgId: number) => Promise<boolean>
 }
 
 export default function RecommendationList({
@@ -34,9 +34,10 @@ export default function RecommendationList({
     try {
       setAddingGameId(rawgId)
 
-      await onAddToLibrary(rawgId)
-
-      setAddedGameIds((currentIds) => [...currentIds, rawgId])
+      const added = await onAddToLibrary(rawgId)
+      if (added) {
+        setAddedGameIds((currentIds) => [...currentIds, rawgId])
+      }
     } finally {
       setAddingGameId(null)
     }

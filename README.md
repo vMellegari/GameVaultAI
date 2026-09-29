@@ -39,6 +39,10 @@ O padrão é `data/media`; mantenha essa pasta em armazenamento persistente e
 inclua-a nos backups do projeto. Cada sessão aceita até 5 imagens JPEG, PNG ou
 WebP, com até 5 MB por imagem.
 
+`CORS_ORIGINS` aceita uma lista de origens separadas por vírgula. Para o
+frontend, copie `frontend/.env.example` para `frontend/.env` e ajuste
+`VITE_API_URL` se a API não estiver em `http://localhost:8000`.
+
 Crie um ambiente virtual e instale as dependências:
 
 ```powershell

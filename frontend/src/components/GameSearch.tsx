@@ -38,8 +38,12 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
     try {
       const data = await searchGames(query.trim())
       setResults(data)
-    } catch {
-      setError('Não foi possível realizar a busca.')
+    } catch (searchError) {
+      setError(
+        searchError instanceof Error
+          ? searchError.message
+          : 'Não foi possível realizar a busca.',
+      )
     } finally {
       setLoading(false)
     }

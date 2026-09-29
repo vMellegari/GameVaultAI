@@ -76,6 +76,7 @@ function App() {
   const [page, setPage] = useState(1)
   const [hasMoreGames, setHasMoreGames] = useState(false)
   const [actionMessage, setActionMessage] = useState('')
+  const [actionMessageIsError, setActionMessageIsError] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null)
   const [showStatistics, setShowStatistics] = useState(false)
@@ -195,8 +196,19 @@ function App() {
     [activeFilter, activeGameType, searchTitle],
   )
 
-  function handleGameUpdated(message: string, gameId: number, action: string) {
+  function handleGameUpdated(
+    message: string,
+    gameId: number,
+    action: string,
+    succeeded: boolean,
+  ) {
     setActionMessage(message)
+    setActionMessageIsError(!succeeded)
+
+    if (!succeeded) {
+      setTimeout(() => setActionMessage(''), 2500)
+      return
+    }
 
     setGames((currentGames) => {
       const updatedGames = currentGames
@@ -267,7 +279,10 @@ function App() {
     }
   }
 
-  async function handleAddRecommendationToLibrary(rawgId: number) {
+  async function handleAddRecommendationToLibrary(
+    rawgId: number,
+  ): Promise<boolean> {
+    setRecommendationError('')
     try {
       const newGame = await importGame(rawgId)
 
@@ -279,7 +294,7 @@ function App() {
           searchTitle,
         )
       ) {
-        return
+        return true
       }
 
       setGames((currentGames) => {
@@ -291,8 +306,18 @@ function App() {
           }),
         )
       })
+      return true
     } catch (error) {
-      console.error(error)
+      if (error instanceof Error && error.message === 'Sessão expirada.') {
+        setAuthenticated(false)
+      } else {
+        setRecommendationError(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível adicionar o jogo à biblioteca.',
+        )
+      }
+      return false
     }
   }
 
@@ -581,7 +606,12 @@ function App() {
               </div>
 
               {actionMessage && (
-                <div className="action-message">{actionMessage}</div>
+                <div
+                  className={`action-message${actionMessageIsError ? ' error' : ''}`}
+                  role={actionMessageIsError ? 'alert' : 'status'}
+                >
+                  {actionMessage}
+                </div>
               )}
 
               {loading && (

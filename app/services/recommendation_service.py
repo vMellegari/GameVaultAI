@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.models.game import Game
 from app.models.user import User
 from app.schemas.recommendation import RecommendationResponse
-from app.services.rawg_service import search_games
+from app.services.rawg_service import RawgProviderError, search_games
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,14 @@ def enrich_recommendations_with_rawg(
     """Adiciona dados da RAWG às recomendações geradas pelo Gemini."""
 
     for recommendation in recommendations.recommendations:
-        games = search_games(recommendation.title)
+        try:
+            games = search_games(recommendation.title)
+        except RawgProviderError:
+            logger.warning(
+                "Could not enrich recommendation with RAWG: %s",
+                recommendation.title,
+            )
+            continue
 
         if not games:
             continue

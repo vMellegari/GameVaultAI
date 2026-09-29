@@ -1,4 +1,7 @@
-const API_URL = 'http://localhost:8000'
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(
+  /\/+$/,
+  '',
+)
 
 function getAuthHeaders() {
   const token = localStorage.getItem('access_token')
@@ -85,7 +88,12 @@ export async function searchGames(query: string) {
   )
 
   if (!response.ok) {
-    throw new Error('Não foi possível realizar a busca.')
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível realizar a busca.',
+    )
   }
 
   return response.json()

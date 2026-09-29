@@ -59,7 +59,7 @@ def get_all_games(
         query = query.filter(Game.favorite == favorite)
 
     if sort_by:
-        query = query.order_by(getattr(Game, sort_by.value))
+        query = query.order_by(getattr(Game, sort_by.value), Game.id)
 
     offset = (page - 1) * limit
 

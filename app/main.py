@@ -4,6 +4,7 @@ from fastapi.openapi.utils import get_openapi
 
 from app.api.v1.games import router as games_router
 from app.api.v1.users import router as user_router
+from app.core.config import settings
 
 app = FastAPI(
     title="GameVault AI",
@@ -12,9 +13,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-    ],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

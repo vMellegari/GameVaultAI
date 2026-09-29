@@ -64,7 +64,13 @@ def search_games(query: str):
             detail="A busca deve conter pelo menos 2 caracteres."
         )
 
-    return rawg_service.search_games(query)
+    try:
+        return rawg_service.search_games(query)
+    except rawg_service.RawgProviderError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail=error.message,
+        ) from error
 
 
 @router.get(
@@ -463,6 +469,11 @@ def import_game(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(error),
         ) from error
+    except rawg_service.RawgProviderError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail=error.message,
+        ) from error
 
     if not game:
         raise HTTPException(
@@ -480,8 +491,14 @@ def import_game(
     description="Permite atualizar as informações de um jogo cadastrado no banco de dados com base no ID do jogo com dados da RAWG."
 )
 def refresh_game(game_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    game = game_service.refresh_game_from_rawg(
-        db=db, game_id=game_id, owner=current_user)
+    try:
+        game = game_service.refresh_game_from_rawg(
+            db=db, game_id=game_id, owner=current_user)
+    except rawg_service.RawgProviderError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail=error.message,
+        ) from error
 
     if not game:
         raise HTTPException(
