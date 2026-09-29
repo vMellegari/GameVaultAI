@@ -1,7 +1,9 @@
+from datetime import datetime
+from typing import List
+
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
@@ -10,10 +12,14 @@ from app.models.enums import GameStatus, GameType, SortField
 from app.schemas.game import GameCreate, GameResponse, GameUpdate
 from app.schemas.game_session import (
     GameSessionCreate,
+    GameSessionInsightsResponse,
     GameSessionImageResponse,
     GameSessionResponse,
+    GameSessionUpdate,
+    RecentGameSessionResponse,
 )
 from app.schemas.stats import GameStats
+from app.schemas.session_stats import GameSessionStats
 from app.schemas.rawg import RawgGame
 from app.schemas.recommendation import RecommendationResponse
 from app.services import (
@@ -22,6 +28,7 @@ from app.services import (
     game_session_image_service,
     rawg_service,
     recommendation_service,
+    session_insight_service,
 )
 
 router = APIRouter()
@@ -126,6 +133,80 @@ def get_recommendations(
 
 
 @router.get(
+    "/games/sessions/recent",
+    response_model=list[RecentGameSessionResponse],
+    summary="Listar sessões recentes da biblioteca",
+)
+def list_recent_game_sessions(
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=20, ge=1, le=100),
+    game_title: str | None = Query(default=None, max_length=100),
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+    min_duration: int | None = Query(default=None, ge=1, le=1440),
+    max_duration: int | None = Query(default=None, ge=1, le=1440),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if date_from and date_to and date_from >= date_to:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A data inicial deve ser anterior à data final.",
+        )
+    if (
+        min_duration is not None
+        and max_duration is not None
+        and min_duration > max_duration
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="A duração mínima não pode superar a duração máxima.",
+        )
+
+    return game_session_service.get_recent_game_sessions(
+        db=db,
+        owner=current_user,
+        limit=limit,
+        offset=(page - 1) * limit,
+        game_title=game_title,
+        date_from=date_from,
+        date_to=date_to,
+        min_duration=min_duration,
+        max_duration=max_duration,
+    )
+
+
+@router.get(
+    "/games/sessions/stats",
+    response_model=GameSessionStats,
+    summary="Obter estatísticas das sessões de jogo",
+)
+def get_game_session_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return game_session_service.get_game_session_stats(db, current_user)
+
+
+@router.post(
+    "/games/sessions/insights",
+    response_model=GameSessionInsightsResponse,
+    summary="Analisar observações das sessões com IA",
+)
+def get_game_session_insights(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return session_insight_service.analyze_session_notes(db, current_user)
+    except session_insight_service.SessionInsightProviderError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail=error.message,
+        ) from error
+
+
+@router.get(
     "/games/{game_id}",
     response_model=GameResponse,
     summary="Obter detalhes de um jogo específico",
@@ -194,6 +275,33 @@ def create_game_session(
             detail="Jogo não encontrado.",
         )
 
+    return game_session
+
+
+@router.patch(
+    "/games/{game_id}/sessions/{session_id}",
+    response_model=GameSessionResponse,
+    summary="Editar uma sessão de jogo",
+)
+def update_game_session(
+    game_id: int,
+    session_id: int,
+    session_data: GameSessionUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    game_session = game_session_service.update_game_session(
+        db=db,
+        game_id=game_id,
+        session_id=session_id,
+        owner=current_user,
+        update_data=session_data.model_dump(exclude_unset=True),
+    )
+    if game_session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sessão de jogo não encontrada.",
+        )
     return game_session
 
 

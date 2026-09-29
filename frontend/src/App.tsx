@@ -4,6 +4,7 @@ import GameCard from './components/GameCard'
 import GameSearch from './components/GameSearch'
 import GameDetails from './components/GameDetails'
 import Statistics from './components/Statistics'
+import ActivityTimeline from './components/ActivityTimeline'
 import { getGames, getRecommendations, importGame } from './services/api'
 import RecommendationList from './components/RecommendationList'
 import './App.css'
@@ -78,6 +79,7 @@ function App() {
   const [showSearch, setShowSearch] = useState(false)
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null)
   const [showStatistics, setShowStatistics] = useState(false)
+  const [showActivity, setShowActivity] = useState(false)
   const [recommendations, setRecommendations] = useState<
     {
       rawg_id: number
@@ -320,6 +322,7 @@ function App() {
     setSelectedGameId(null)
     setShowSearch(false)
     setShowStatistics(false)
+    setShowActivity(false)
   }
 
   if (!authenticated) {
@@ -335,7 +338,15 @@ function App() {
         </div>
 
         <div className="topbar-actions">
-          <button className="search-button" onClick={() => setShowSearch(true)}>
+          <button
+            className="search-button"
+            onClick={() => {
+              setShowSearch(true)
+              setShowActivity(false)
+              setShowStatistics(false)
+              setSelectedGameId(null)
+            }}
+          >
             🔍 Buscar jogos
           </button>
 
@@ -351,9 +362,10 @@ function App() {
         <aside className="sidebar">
           <nav>
             <button
-              className={`nav-item ${!showStatistics && !showSearch && selectedGameId === null ? 'active' : ''}`}
+              className={`nav-item ${!showStatistics && !showActivity && !showSearch && selectedGameId === null ? 'active' : ''}`}
               onClick={() => {
                 setShowStatistics(false)
+                setShowActivity(false)
                 setShowSearch(false)
                 setSelectedGameId(null)
               }}
@@ -365,11 +377,24 @@ function App() {
               className={`nav-item ${showStatistics ? 'active' : ''}`}
               onClick={() => {
                 setShowStatistics(true)
+                setShowActivity(false)
                 setShowSearch(false)
                 setSelectedGameId(null)
               }}
             >
               📊 Estatísticas
+            </button>
+
+            <button
+              className={`nav-item ${showActivity ? 'active' : ''}`}
+              onClick={() => {
+                setShowActivity(true)
+                setShowStatistics(false)
+                setShowSearch(false)
+                setSelectedGameId(null)
+              }}
+            >
+              🕘 Atividade
             </button>
           </nav>
         </aside>
@@ -409,6 +434,13 @@ function App() {
             />
           ) : showStatistics ? (
             <Statistics onClose={() => setShowStatistics(false)} />
+          ) : showActivity ? (
+            <ActivityTimeline
+              onOpenGame={(gameId) => {
+                setShowActivity(false)
+                setSelectedGameId(gameId)
+              }}
+            />
           ) : showSearch ? (
             <GameSearch
               onClose={() => setShowSearch(false)}

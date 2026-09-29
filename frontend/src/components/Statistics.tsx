@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 
-import { getGameStats } from '../services/api'
+import {
+  getGameSessionStats,
+  getGameStats,
+  type GameSessionStats as GameSessionStatsData,
+} from '../services/api'
 import './Statistics.css'
 
 interface GameStats {
@@ -23,8 +27,10 @@ interface StatisticsProps {
 
 function Statistics({ onClose }: StatisticsProps) {
   const [stats, setStats] = useState<GameStats | null>(null)
+  const [sessionStats, setSessionStats] = useState<GameSessionStatsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [sessionStatsError, setSessionStatsError] = useState('')
 
   useEffect(() => {
     async function loadStats() {
@@ -32,10 +38,26 @@ function Statistics({ onClose }: StatisticsProps) {
       setError('')
 
       try {
-        const data = await getGameStats()
-        setStats(data)
+        const [libraryResult, sessionsResult] = await Promise.allSettled([
+          getGameStats(),
+          getGameSessionStats(),
+        ])
+
+        if (libraryResult.status === 'fulfilled') {
+          setStats(libraryResult.value)
+        } else {
+          setError('Não foi possível carregar as estatísticas da biblioteca.')
+        }
+
+        if (sessionsResult.status === 'fulfilled') {
+          setSessionStats(sessionsResult.value)
+        } else {
+          setSessionStatsError(
+            'Não foi possível carregar as estatísticas das sessões.',
+          )
+        }
       } catch {
-        setError('Não foi possível carregar as estatísticas.')
+        setError('Não foi possível carregar as estatísticas da biblioteca.')
       } finally {
         setLoading(false)
       }
@@ -52,7 +74,7 @@ function Statistics({ onClose }: StatisticsProps) {
     )
   }
 
-  if (error || !stats) {
+  if (!stats) {
     return (
       <div className="statistics-page">
         <button className="close-button" onClick={onClose}>
@@ -156,6 +178,90 @@ function Statistics({ onClose }: StatisticsProps) {
           </div>
         </article>
       </section>
+
+      {sessionStatsError && (
+        <p className="session-stats-error" role="alert">
+          {sessionStatsError}
+        </p>
+      )}
+
+      {sessionStats && (
+        <section className="session-statistics">
+          <div className="session-statistics-heading">
+            <div>
+              <h3>Atividade registrada</h3>
+              <p>Dados calculados a partir das sessões que você registrou.</p>
+            </div>
+            <div className="session-stat-total">
+              <strong>{sessionStats.total_hours}h</strong>
+              <span>{sessionStats.total_sessions} sessões</span>
+            </div>
+          </div>
+
+          <div className="session-statistics-panels">
+            <div className="session-chart-panel">
+              <h4>Horas por mês</h4>
+              <div className="session-month-chart" role="list">
+                {sessionStats.monthly_hours.map((item) => {
+                  const maximumHours = Math.max(
+                    ...sessionStats.monthly_hours.map((month) => month.hours),
+                    1,
+                  )
+                  const monthDate = new Date(`${item.month}-01T00:00:00`)
+                  const label = monthDate.toLocaleDateString('pt-BR', {
+                    month: 'short',
+                  })
+
+                  return (
+                    <div
+                      className="session-month-column"
+                      key={item.month}
+                      role="listitem"
+                      title={`${item.hours}h`}
+                    >
+                      <span>{item.hours > 0 ? item.hours : ''}</span>
+                      <div className="session-month-bar-track">
+                        <div
+                          className="session-month-bar"
+                          style={{
+                            height: `${Math.max(
+                              (item.hours / maximumHours) * 100,
+                              item.hours > 0 ? 5 : 0,
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <small>{label}</small>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="session-top-games">
+              <h4>Jogos com mais horas registradas</h4>
+              {sessionStats.most_played_games.length === 0 ? (
+                <p>Nenhuma sessão registrada ainda.</p>
+              ) : (
+                <ol>
+                  {sessionStats.most_played_games.map((game) => (
+                    <li key={game.game_id}>
+                      <div>
+                        <strong>{game.title}</strong>
+                        <span>
+                          {game.sessions}{' '}
+                          {game.sessions === 1 ? 'sessão' : 'sessões'}
+                        </span>
+                      </div>
+                      <b>{(game.minutes / 60).toFixed(1)}h</b>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="statistics-summary">
         <div className="statistics-summary-header">

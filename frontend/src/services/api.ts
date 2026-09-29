@@ -206,6 +206,146 @@ export interface GameSessionImage {
   created_at: string
 }
 
+export interface RecentGameSession extends GameSession {
+  game: {
+    id: number
+    title: string
+    platform: string
+    cover_image: string | null
+  }
+}
+
+export interface RecentSessionFilters {
+  game_title?: string
+  date_from?: string
+  date_to?: string
+  min_duration?: number
+  max_duration?: number
+}
+
+export interface GameSessionStats {
+  total_sessions: number
+  total_hours: number
+  monthly_hours: { month: string; hours: number }[]
+  most_played_games: {
+    game_id: number
+    title: string
+    minutes: number
+    sessions: number
+  }[]
+}
+
+export interface GameSessionInsights {
+  summary: string
+  highlights: string[]
+  sessions_analyzed: number
+}
+
+export async function getRecentGameSessions(
+  page = 1,
+  limit = 20,
+  filters: RecentSessionFilters = {},
+): Promise<RecentGameSession[]> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  })
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      params.set(key, String(value))
+    }
+  })
+  const response = await fetch(
+    `${API_URL}/games/sessions/recent?${params.toString()}`,
+    { headers: getAuthHeaders() },
+  )
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+  if (!response.ok) {
+    throw new Error('Não foi possível carregar a atividade recente.')
+  }
+
+  return response.json()
+}
+
+export async function updateGameSession(
+  gameId: number,
+  sessionId: number,
+  data: {
+    played_at?: string
+    duration_minutes?: number
+    notes?: string | null
+  },
+): Promise<GameSession> {
+  const response = await fetch(
+    `${API_URL}/games/${gameId}/sessions/${sessionId}`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    },
+  )
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível editar a sessão.',
+    )
+  }
+
+  return response.json()
+}
+
+export async function getGameSessionStats(): Promise<GameSessionStats> {
+  const response = await fetch(`${API_URL}/games/sessions/stats`, {
+    headers: getAuthHeaders(),
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+  if (!response.ok) {
+    throw new Error('Não foi possível carregar as estatísticas das sessões.')
+  }
+
+  return response.json()
+}
+
+export async function analyzeGameSessionNotes(): Promise<GameSessionInsights> {
+  const response = await fetch(`${API_URL}/games/sessions/insights`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível analisar as sessões.',
+    )
+  }
+
+  return response.json()
+}
+
 export async function getGameSessions(gameId: number): Promise<GameSession[]> {
   const response = await fetch(`${API_URL}/games/${gameId}/sessions`, {
     headers: getAuthHeaders(),

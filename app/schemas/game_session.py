@@ -11,6 +11,12 @@ class GameSessionCreate(BaseModel):
     notes: str | None = Field(default=None, max_length=2000)
 
 
+class GameSessionUpdate(BaseModel):
+    played_at: datetime | None = None
+    duration_minutes: int | None = Field(default=None, gt=0, le=1440)
+    notes: str | None = Field(default=None, max_length=2000)
+
+
 class GameSessionImageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -32,3 +38,27 @@ class GameSessionResponse(BaseModel):
     notes: str | None = None
     created_at: datetime
     images: list[GameSessionImageResponse] = Field(default_factory=list)
+
+
+class GameSessionGameResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    platform: str
+    cover_image: str | None = None
+
+
+class RecentGameSessionResponse(GameSessionResponse):
+    game: GameSessionGameResponse
+
+
+class GameSessionInsightsResponse(BaseModel):
+    summary: str
+    highlights: list[str] = Field(default_factory=list, max_length=5)
+    sessions_analyzed: int
+
+
+class GameSessionInsightsContent(BaseModel):
+    summary: str
+    highlights: list[str] = Field(default_factory=list, max_length=5)
