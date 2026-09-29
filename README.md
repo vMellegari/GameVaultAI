@@ -34,6 +34,11 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 Coloque o valor gerado em `SECRET_KEY` no `.env`. `RAWG_API_KEY` e
 `GEMINI_API_KEY` habilitam as integrações correspondentes.
 
+`GAMEVAULT_MEDIA_DIR` define onde os anexos de imagem das sessões são salvos.
+O padrão é `data/media`; mantenha essa pasta em armazenamento persistente e
+inclua-a nos backups do projeto. Cada sessão aceita até 5 imagens JPEG, PNG ou
+WebP, com até 5 MB por imagem.
+
 Crie um ambiente virtual e instale as dependências:
 
 ```powershell
@@ -86,6 +91,12 @@ pytest -q
 
 Os testes usam um banco SQLite separado e mocks para a RAWG e o Gemini; não
 fazem requisições reais às APIs externas.
+
+## Sessões de jogo e imagens
+
+As sessões são associadas ao jogo e atualizam o total de horas jogadas. Seus
+anexos ficam em arquivos locais; o PostgreSQL armazena apenas os metadados. As
+rotas de leitura, envio e exclusão de imagens exigem autenticação JWT.
 
 ## Principais endpoints
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Login from './components/Login'
 import GameCard from './components/GameCard'
 import GameSearch from './components/GameSearch'
@@ -30,7 +30,15 @@ function matchesActiveFilter(
   game: Game,
   filter: Filter,
   gameType: GameType | null,
+  title: string,
 ) {
+  if (
+    title &&
+    !game.title.toLocaleLowerCase().includes(title.toLocaleLowerCase())
+  ) {
+    return false
+  }
+
   if (gameType && game.game_type !== gameType) {
     return false
   }
@@ -81,16 +89,31 @@ function App() {
   >([])
 
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
+  const [recommendationError, setRecommendationError] = useState('')
   const [activeFilter, setActiveFilter] = useState<Filter>('all')
   const [activeGameType, setActiveGameType] = useState<GameType | null>(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [searchTitle, setSearchTitle] = useState('')
+  const latestLoadRequest = useRef(0)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setSearchTitle(searchInput.trim())
+    }, 300)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [searchInput])
 
   const loadGames = useCallback(
     async (
       filter: Filter = activeFilter,
       gameType: GameType | null = activeGameType,
+      title = searchTitle,
       pageToLoad = 1,
       append = false,
     ) => {
+      const requestId = ++latestLoadRequest.current
+
       if (append) {
         setLoadingMore(true)
         setLoadMoreError('')
@@ -125,7 +148,12 @@ function App() {
           pageToLoad,
           PAGE_SIZE,
           gameType ?? undefined,
+          title || undefined,
         )
+
+        if (requestId !== latestLoadRequest.current) {
+          return
+        }
 
         setGames((currentGames) => {
           const nextGames = append
@@ -141,6 +169,10 @@ function App() {
         setPage(pageToLoad)
         setHasMoreGames(data.length === PAGE_SIZE)
       } catch (err) {
+        if (requestId !== latestLoadRequest.current) {
+          return
+        }
+
         if (err instanceof Error && err.message === 'Sessão expirada.') {
           setAuthenticated(false)
           return
@@ -152,11 +184,13 @@ function App() {
           setError('Não foi possível carregar sua biblioteca.')
         }
       } finally {
-        setLoading(false)
-        setLoadingMore(false)
+        if (requestId === latestLoadRequest.current) {
+          setLoading(false)
+          setLoadingMore(false)
+        }
       }
     },
-    [activeFilter, activeGameType],
+    [activeFilter, activeGameType, searchTitle],
   )
 
   function handleGameUpdated(message: string, gameId: number, action: string) {
@@ -193,7 +227,12 @@ function App() {
           return game
         })
         .filter((game) =>
-          matchesActiveFilter(game, activeFilter, activeGameType),
+          matchesActiveFilter(
+            game,
+            activeFilter,
+            activeGameType,
+            searchTitle,
+          ),
         )
 
       return updatedGames
@@ -203,14 +242,24 @@ function App() {
   }
 
   async function handleRecommendations() {
-    try {
-      setLoadingRecommendations(true)
+    setLoadingRecommendations(true)
+    setRecommendationError('')
 
+    try {
       const data = await getRecommendations()
 
       setRecommendations(data.recommendations)
     } catch (error) {
-      console.error(error)
+      if (error instanceof Error && error.message === 'Sessão expirada.') {
+        setAuthenticated(false)
+        return
+      }
+
+      setRecommendationError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível gerar recomendações agora.',
+      )
     } finally {
       setLoadingRecommendations(false)
     }
@@ -220,7 +269,14 @@ function App() {
     try {
       const newGame = await importGame(rawgId)
 
-      if (!matchesActiveFilter(newGame, activeFilter, activeGameType)) {
+      if (
+        !matchesActiveFilter(
+          newGame,
+          activeFilter,
+          activeGameType,
+          searchTitle,
+        )
+      ) {
         return
       }
 
@@ -246,7 +302,7 @@ function App() {
 
       return () => window.clearTimeout(timeoutId)
     }
-  }, [authenticated, activeFilter, activeGameType, loadGames])
+  }, [authenticated, activeFilter, activeGameType, searchTitle, loadGames])
 
   function handleFilterChange(filter: Filter) {
     setActiveFilter(filter)
@@ -256,6 +312,8 @@ function App() {
     localStorage.removeItem('access_token')
     setAuthenticated(false)
     setGames([])
+    setSearchInput('')
+    setSearchTitle('')
     setPage(1)
     setHasMoreGames(false)
     setLoadMoreError('')
@@ -342,6 +400,7 @@ function App() {
                         game,
                         activeFilter,
                         activeGameType,
+                        searchTitle,
                       ),
                     ),
                 )
@@ -444,6 +503,19 @@ function App() {
                 </button>
               </section>
 
+              <section className="library-search">
+                <label htmlFor="library-search-input">
+                  Buscar na biblioteca
+                </label>
+                <input
+                  id="library-search-input"
+                  type="search"
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="Ex.: The Witcher 3"
+                />
+              </section>
+
               <div>
                 <button
                   className="ai-recommendations-button"
@@ -458,6 +530,12 @@ function App() {
                 {loadingRecommendations && (
                   <p className="ai-recommendations-loading">
                     Considerando seus jogos, favoritos, avaliações e gêneros...
+                  </p>
+                )}
+
+                {recommendationError && (
+                  <p className="ai-recommendations-error" role="alert">
+                    {recommendationError}
                   </p>
                 )}
 
@@ -489,7 +567,11 @@ function App() {
               {!loading && !error && games.length === 0 && (
                 <div className="library-message">
                   <h3>Nenhum jogo encontrado</h3>
-                  <p>Não há jogos correspondentes a este filtro.</p>
+                  <p>
+                    {searchTitle
+                      ? `Nenhum jogo encontrado para “${searchTitle}”.`
+                      : 'Não há jogos correspondentes a este filtro.'}
+                  </p>
                 </div>
               )}
 
@@ -524,6 +606,7 @@ function App() {
                       void loadGames(
                         activeFilter,
                         activeGameType,
+                        searchTitle,
                         page + 1,
                         true,
                       )

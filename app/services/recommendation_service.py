@@ -1,4 +1,7 @@
+import logging
+
 from google import genai
+from google.genai.errors import APIError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -6,6 +9,15 @@ from app.models.game import Game
 from app.models.user import User
 from app.schemas.recommendation import RecommendationResponse
 from app.services.rawg_service import search_games
+
+logger = logging.getLogger(__name__)
+
+
+class RecommendationProviderError(Exception):
+    def __init__(self, status_code: int, message: str):
+        self.status_code = status_code
+        self.message = message
+        super().__init__(message)
 
 
 def get_recommendation_context(db: Session, owner: User):
@@ -104,18 +116,30 @@ Biblioteca do usuário:
 {games}
 """
 
-    interaction = client.interactions.create(
-        model="gemini-3.6-flash",
-        input=prompt,
-        response_format={
-            "type": "text",
-            "mime_type": "application/json",
-            "schema": RecommendationResponse.model_json_schema(),
-        },
-        generation_config={
-            "thinking_level": "low"
-        }
-    )
+    try:
+        interaction = client.interactions.create(
+            model="gemini-3.6-flash",
+            input=prompt,
+            response_format={
+                "type": "text",
+                "mime_type": "application/json",
+                "schema": RecommendationResponse.model_json_schema(),
+            },
+            generation_config={
+                "thinking_level": "low"
+            }
+        )
+    except APIError as error:
+        logger.exception("Gemini recommendations request failed (status=%s)", error.code)
+        if error.code == 429:
+            raise RecommendationProviderError(
+                429,
+                "O limite de requisições do Gemini foi atingido. Aguarde e tente novamente.",
+            ) from error
+        raise RecommendationProviderError(
+            502,
+            "O serviço de recomendações está indisponível no momento. Tente novamente mais tarde.",
+        ) from error
 
     if interaction.output_text is None:
         raise RuntimeError("O Gemini não retornou uma resposta válida.")

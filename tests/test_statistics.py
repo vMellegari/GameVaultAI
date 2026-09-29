@@ -12,7 +12,8 @@ def test_get_statistics(client, create_game, auth_headers):
 
     game3 = create_game(
         title="Game 3",
-        platform="PC"
+        platform="PC",
+        game_type="ONGOING",
     )
 
     # Atualiza Game 1
@@ -61,6 +62,8 @@ def test_get_statistics(client, create_game, auth_headers):
     assert stats["dropped"] == 0
     assert stats["wishlist"] == 0
     assert stats["favorite_games"] == 2
+    assert stats["standard_games"] == 2
+    assert stats["ongoing_games"] == 1
     assert stats["total_hours"] == 50
     assert stats["average_rating"] == 9.0
 
@@ -78,5 +81,7 @@ def test_get_statistics_empty_database(client, auth_headers):
     assert stats["dropped"] == 0
     assert stats["wishlist"] == 0
     assert stats["favorite_games"] == 0
+    assert stats["standard_games"] == 0
+    assert stats["ongoing_games"] == 0
     assert stats["total_hours"] == 0
     assert stats["average_rating"] is None

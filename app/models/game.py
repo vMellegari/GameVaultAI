@@ -37,6 +37,12 @@ class Game(Base):
     favorite = Column(Boolean, default=False, nullable=False)
     completed_at = Column(Date, nullable=True)
 
+    sessions = relationship(
+        "GameSession",
+        back_populates="game",
+        cascade="all, delete-orphan",
+    )
+
     # Dados da API RAWG
     rawg_id = Column(Integer, nullable=True, index=True)
     cover_image = Column(String, nullable=True)

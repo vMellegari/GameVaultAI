@@ -33,6 +33,7 @@ htmlcov/
 node_modules/
 dist/
 *.local
+data/media/
 
 # macOS
 .DS_Store

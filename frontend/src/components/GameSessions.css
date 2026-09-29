@@ -1,0 +1,279 @@
+/* Histórico e registro de sessões */
+
+.game-sessions {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px solid #292d38;
+  border-radius: 12px;
+  background: #171a23;
+}
+
+.game-sessions-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.game-sessions-header h3 {
+  margin: 0 0 6px;
+  color: #f3f4f6;
+  font-size: 18px;
+}
+
+.game-sessions-header p,
+.game-session-history > p {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.game-sessions-header > span {
+  color: #9ca3af;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.game-session-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 9px;
+  background: #1d212c;
+}
+
+.game-session-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.game-session-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #d1d5db;
+  font-size: 13px;
+}
+
+.game-session-form input,
+.game-session-form textarea {
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid #353a49;
+  border-radius: 7px;
+  outline: none;
+  background: #151821;
+  color: #f3f4f6;
+  font: inherit;
+}
+
+.game-session-form input:focus,
+.game-session-form textarea:focus {
+  border-color: #6366f1;
+}
+
+.game-session-form textarea {
+  resize: vertical;
+}
+
+.game-session-submit {
+  align-self: flex-start;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: #6366f1;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.game-session-submit:hover:not(:disabled) {
+  background: #5558d9;
+}
+
+.game-session-submit:disabled,
+.game-session-delete:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.game-session-history {
+  margin-top: 20px;
+}
+
+.game-session-history ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.game-session-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid #292d38;
+  border-radius: 8px;
+  background: #151821;
+}
+
+.game-session-item > div {
+  min-width: 0;
+}
+
+.game-session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+.game-session-meta strong {
+  color: #a5b4fc;
+}
+
+.game-session-item p {
+  margin: 8px 0 0;
+  color: #9ca3af;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.game-session-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.game-session-image {
+  width: 150px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #353a49;
+  border-radius: 8px;
+  background: #1d212c;
+}
+
+.game-session-image img,
+.game-session-image-loading {
+  display: block;
+  width: 100%;
+  height: 94px;
+}
+
+.game-session-image img {
+  object-fit: cover;
+}
+
+.game-session-image-loading {
+  display: grid;
+  place-items: center;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.game-session-image figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px;
+}
+
+.game-session-image figcaption span {
+  overflow: hidden;
+  color: #cbd5e1;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-session-image figcaption button,
+.game-session-image-upload button {
+  padding: 5px 7px;
+  border: 1px solid #7f1d1d;
+  border-radius: 5px;
+  background: #24171a;
+  color: #fca5a5;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.game-session-image figcaption button:disabled,
+.game-session-image-upload button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.game-session-image-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.game-session-image-upload label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.game-session-image-upload input {
+  max-width: 260px;
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.game-session-image-upload button {
+  border-color: #3f46a7;
+  background: #252844;
+  color: #c7d2fe;
+}
+
+.game-session-delete {
+  flex-shrink: 0;
+  padding: 6px 9px;
+  border: 1px solid #7f1d1d;
+  border-radius: 6px;
+  background: #24171a;
+  color: #fca5a5;
+  cursor: pointer;
+}
+
+.game-session-delete:hover:not(:disabled) {
+  background: #3a1c20;
+}
+
+.game-sessions-error {
+  margin: 0 0 14px;
+  color: #f87171;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .game-sessions {
+    padding: 16px;
+  }
+
+  .game-session-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .game-session-item {
+    align-items: flex-start;
+  }
+}

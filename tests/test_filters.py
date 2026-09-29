@@ -34,6 +34,65 @@ def test_filter_games_by_status(client, create_game, auth_headers):
     assert games[0]["title"] == "Hades"
     assert games[0]["status"] == "PLAYING"
 
+
+def test_filter_games_by_game_type(client, create_game, auth_headers):
+    standard_game = create_game(title="Traditional Game")
+    ongoing_game = create_game(
+        title="Ongoing Game",
+        game_type="ONGOING",
+    )
+
+    standard_response = client.get(
+        "/games?game_type=STANDARD",
+        headers=auth_headers,
+    )
+    ongoing_response = client.get(
+        "/games?game_type=ONGOING",
+        headers=auth_headers,
+    )
+
+    assert standard_response.status_code == 200
+    assert [game["id"] for game in standard_response.json()] == [
+        standard_game["id"]
+    ]
+    assert ongoing_response.status_code == 200
+    assert [game["id"] for game in ongoing_response.json()] == [
+        ongoing_game["id"]
+    ]
+
+
+def test_filter_games_by_game_type_and_status(
+    client,
+    create_game,
+    auth_headers,
+):
+    ongoing_playing = create_game(
+        title="Ongoing Playing",
+        game_type="ONGOING",
+    )
+    ongoing_backlog = create_game(
+        title="Ongoing Backlog",
+        game_type="ONGOING",
+    )
+    standard_playing = create_game(title="Traditional Playing")
+
+    for game in (ongoing_playing, standard_playing):
+        response = client.patch(
+            f"/games/{game['id']}",
+            json={"status": "PLAYING"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+
+    response = client.get(
+        "/games?game_type=ONGOING&status=PLAYING",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert [game["id"] for game in response.json()] == [ongoing_playing["id"]]
+
+
 def test_filter_games_by_platform(client, create_game, auth_headers):
     # Cria jogos em diferentes plataformas
     game1 = create_game(

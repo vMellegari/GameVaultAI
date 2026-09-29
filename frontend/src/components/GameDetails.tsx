@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { deleteGame, getGame, updateGame } from '../services/api'
+import GameSessions from './GameSessions'
 import './GameDetails.css'
 
 interface Game {
@@ -469,6 +470,24 @@ function GameDetails({
           )}
         </div>
       </section>
+
+      {!editing && (
+        <GameSessions
+          gameId={game.id}
+          onHoursChanged={(changeInHours) => {
+            const updatedGame = {
+              ...game,
+              hours_played: Math.max(
+                0,
+                Math.round((game.hours_played + changeInHours) * 100) / 100,
+              ),
+            }
+            setGame(updatedGame)
+            setHoursPlayed(String(updatedGame.hours_played))
+            onUpdated(updatedGame)
+          }}
+        />
+      )}
     </div>
   )
 }

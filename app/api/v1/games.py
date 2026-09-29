@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -7,10 +8,21 @@ from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.enums import GameStatus, GameType, SortField
 from app.schemas.game import GameCreate, GameResponse, GameUpdate
+from app.schemas.game_session import (
+    GameSessionCreate,
+    GameSessionImageResponse,
+    GameSessionResponse,
+)
 from app.schemas.stats import GameStats
 from app.schemas.rawg import RawgGame
 from app.schemas.recommendation import RecommendationResponse
-from app.services import game_service, rawg_service, recommendation_service
+from app.services import (
+    game_service,
+    game_session_service,
+    game_session_image_service,
+    rawg_service,
+    recommendation_service,
+)
 
 router = APIRouter()
 
@@ -101,10 +113,16 @@ def get_recommendations(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return recommendation_service.generate_recommendations(
-        db=db,
-        owner=current_user
-    )
+    try:
+        return recommendation_service.generate_recommendations(
+            db=db,
+            owner=current_user
+        )
+    except recommendation_service.RecommendationProviderError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail=error.message,
+        ) from error
 
 
 @router.get(
@@ -122,6 +140,195 @@ def get_game(game_id: int, db: Session = Depends(get_db), current_user: User = D
             detail="Jogo não encontrado."
         )
     return game
+
+
+@router.get(
+    "/games/{game_id}/sessions",
+    response_model=list[GameSessionResponse],
+    summary="Listar sessões de um jogo",
+)
+def list_game_sessions(
+    game_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    sessions = game_session_service.get_game_sessions(
+        db=db,
+        game_id=game_id,
+        owner=current_user,
+    )
+
+    if sessions is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Jogo não encontrado.",
+        )
+
+    return sessions
+
+
+@router.post(
+    "/games/{game_id}/sessions",
+    response_model=GameSessionResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Registrar uma sessão de jogo",
+)
+def create_game_session(
+    game_id: int,
+    session_data: GameSessionCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    game_session = game_session_service.create_game_session(
+        db=db,
+        game_id=game_id,
+        owner=current_user,
+        duration_minutes=session_data.duration_minutes,
+        played_at=session_data.played_at,
+        notes=session_data.notes,
+    )
+
+    if not game_session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Jogo não encontrado.",
+        )
+
+    return game_session
+
+
+@router.delete(
+    "/games/{game_id}/sessions/{session_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Excluir uma sessão de jogo",
+)
+def delete_game_session(
+    game_id: int,
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    deleted_minutes = game_session_service.delete_game_session(
+        db=db,
+        game_id=game_id,
+        session_id=session_id,
+        owner=current_user,
+    )
+
+    if deleted_minutes is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sessão de jogo não encontrada.",
+        )
+
+
+@router.post(
+    "/games/{game_id}/sessions/{session_id}/images",
+    response_model=list[GameSessionImageResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Anexar imagens a uma sessão",
+)
+async def upload_game_session_images(
+    game_id: int,
+    session_id: int,
+    files: list[UploadFile] = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    session = game_session_image_service.get_owned_session(
+        db=db,
+        game_id=game_id,
+        session_id=session_id,
+        owner=current_user,
+    )
+    if session is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Sessão de jogo não encontrada.",
+        )
+    if len(files) > game_session_image_service.MAX_IMAGES_PER_SESSION:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Envie no máximo 5 imagens por vez.",
+        )
+
+    uploads = []
+    for upload in files:
+        data = await upload.read(game_session_image_service.MAX_IMAGE_SIZE + 1)
+        uploads.append((upload.filename or "screenshot", data))
+        await upload.close()
+
+    try:
+        return game_session_image_service.store_session_images(
+            db=db,
+            session=session,
+            uploads=uploads,
+        )
+    except game_session_image_service.SessionImageError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail=error.message,
+        ) from error
+
+
+@router.get(
+    "/games/{game_id}/sessions/{session_id}/images/{image_id}",
+    summary="Obter uma imagem anexada à sessão",
+)
+def get_game_session_image(
+    game_id: int,
+    session_id: int,
+    image_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    image = game_session_image_service.get_owned_image(
+        db=db,
+        game_id=game_id,
+        session_id=session_id,
+        image_id=image_id,
+        owner=current_user,
+    )
+    if image is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Imagem não encontrada.",
+        )
+
+    path = game_session_image_service.image_file_path(image)
+    if not path.is_file():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Arquivo de imagem não encontrado.",
+        )
+    return FileResponse(path, media_type=image.content_type)
+
+
+@router.delete(
+    "/games/{game_id}/sessions/{session_id}/images/{image_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Excluir uma imagem da sessão",
+)
+def delete_game_session_image(
+    game_id: int,
+    session_id: int,
+    image_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    image = game_session_image_service.get_owned_image(
+        db=db,
+        game_id=game_id,
+        session_id=session_id,
+        image_id=image_id,
+        owner=current_user,
+    )
+    if image is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Imagem não encontrada.",
+        )
+    game_session_image_service.delete_image(db, image)
 
 
 @router.post(

@@ -21,6 +21,8 @@ class Settings:
         ""
     )
 
+    MEDIA_DIR = os.getenv("GAMEVAULT_MEDIA_DIR", "data/media")
+
     SECRET_KEY = os.getenv("SECRET_KEY")
 
     if not SECRET_KEY:

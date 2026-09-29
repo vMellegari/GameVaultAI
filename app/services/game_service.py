@@ -284,8 +284,15 @@ def delete_game(db: Session, game_id: int, owner: User):
     if not db_game:
         return False
 
+    from app.services.game_session_image_service import (
+        get_game_image_paths,
+        remove_files,
+    )
+
+    image_paths = get_game_image_paths(db, db_game.id)
     db.delete(db_game)
     db.commit()
+    remove_files(image_paths)
 
     return True
 

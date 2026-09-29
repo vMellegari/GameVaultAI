@@ -33,6 +33,7 @@ export async function getGames(
   page = 1,
   limit = 10,
   gameType?: 'STANDARD' | 'ONGOING',
+  title?: string,
 ) {
   const params = new URLSearchParams()
 
@@ -46,6 +47,10 @@ export async function getGames(
 
   if (gameType) {
     params.append('game_type', gameType)
+  }
+
+  if (title) {
+    params.append('title', title)
   }
 
   params.append('page', String(page))
@@ -182,6 +187,182 @@ export async function getGame(gameId: number) {
   return response.json()
 }
 
+export interface GameSession {
+  id: number
+  game_id: number
+  played_at: string
+  duration_minutes: number
+  notes: string | null
+  created_at: string
+  images: GameSessionImage[]
+}
+
+export interface GameSessionImage {
+  id: number
+  session_id: number
+  original_filename: string
+  content_type: string
+  file_size: number
+  created_at: string
+}
+
+export async function getGameSessions(gameId: number): Promise<GameSession[]> {
+  const response = await fetch(`${API_URL}/games/${gameId}/sessions`, {
+    headers: getAuthHeaders(),
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+
+  if (!response.ok) {
+    throw new Error('Não foi possível carregar o histórico de sessões.')
+  }
+
+  return response.json()
+}
+
+export async function createGameSession(
+  gameId: number,
+  data: {
+    played_at: string
+    duration_minutes: number
+    notes: string | null
+  },
+): Promise<GameSession> {
+  const response = await fetch(`${API_URL}/games/${gameId}/sessions`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível registrar a sessão.',
+    )
+  }
+
+  return response.json()
+}
+
+export async function deleteGameSession(
+  gameId: number,
+  sessionId: number,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/games/${gameId}/sessions/${sessionId}`,
+    {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    },
+  )
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível excluir a sessão.',
+    )
+  }
+}
+
+export async function uploadGameSessionImages(
+  gameId: number,
+  sessionId: number,
+  files: File[],
+): Promise<GameSessionImage[]> {
+  const formData = new FormData()
+  files.forEach((file) => formData.append('files', file))
+
+  const response = await fetch(
+    `${API_URL}/games/${gameId}/sessions/${sessionId}/images`,
+    {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: formData,
+    },
+  )
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível anexar as imagens.',
+    )
+  }
+
+  return response.json()
+}
+
+export async function getGameSessionImage(
+  gameId: number,
+  sessionId: number,
+  imageId: number,
+): Promise<Blob> {
+  const response = await fetch(
+    `${API_URL}/games/${gameId}/sessions/${sessionId}/images/${imageId}`,
+    { headers: getAuthHeaders() },
+  )
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+  if (!response.ok) {
+    throw new Error('Não foi possível carregar a imagem.')
+  }
+
+  return response.blob()
+}
+
+export async function deleteGameSessionImage(
+  gameId: number,
+  sessionId: number,
+  imageId: number,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/games/${gameId}/sessions/${sessionId}/images/${imageId}`,
+    { method: 'DELETE', headers: getAuthHeaders() },
+  )
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível excluir a imagem.',
+    )
+  }
+}
+
 export async function updateGame(
   gameId: number,
   data: {
@@ -248,7 +429,12 @@ export async function getRecommendations() {
   }
 
   if (!response.ok) {
-    throw new Error('Não foi possível carregar as recomendações.')
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : 'Não foi possível carregar as recomendações.',
+    )
   }
 
   return response.json()
