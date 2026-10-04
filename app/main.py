@@ -26,6 +26,12 @@ app.include_router(user_router)
 def root():
     return {"message": "GameVault AI está em execução!"}
 
+
+@app.get("/health", include_in_schema=False)
+def health():
+    return {"status": "ok"}
+
+
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema

@@ -27,6 +27,30 @@ type Filter = 'all' | 'backlog' | 'playing' | 'completed' | 'favorites'
 type GameType = 'STANDARD' | 'ONGOING'
 const PAGE_SIZE = 10
 
+function getUsernameFromToken() {
+  const token = localStorage.getItem('access_token')
+  const payload = token?.split('.')[1]
+
+  if (!payload) {
+    return ''
+  }
+
+  try {
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const paddedBase64 = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
+    const bytes = Uint8Array.from(atob(paddedBase64), (character) =>
+      character.charCodeAt(0),
+    )
+    const claims: { sub?: unknown } = JSON.parse(
+      new TextDecoder().decode(bytes),
+    )
+
+    return typeof claims.sub === 'string' ? claims.sub : ''
+  } catch {
+    return ''
+  }
+}
+
 function matchesActiveFilter(
   game: Game,
   filter: Filter,
@@ -67,6 +91,7 @@ function App() {
   const [authenticated, setAuthenticated] = useState(
     Boolean(localStorage.getItem('access_token')),
   )
+  const [username, setUsername] = useState(getUsernameFromToken)
 
   const [games, setGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(false)
@@ -338,6 +363,7 @@ function App() {
   function handleLogout() {
     localStorage.removeItem('access_token')
     setAuthenticated(false)
+    setUsername('')
     setGames([])
     setSearchInput('')
     setSearchTitle('')
@@ -351,7 +377,14 @@ function App() {
   }
 
   if (!authenticated) {
-    return <Login onLogin={() => setAuthenticated(true)} />
+    return (
+      <Login
+        onLogin={() => {
+          setUsername(getUsernameFromToken())
+          setAuthenticated(true)
+        }}
+      />
+    )
   }
 
   return (
@@ -364,7 +397,7 @@ function App() {
 
         <div className="topbar-actions">
           <button
-            className="search-button"
+            className="add-game-button"
             onClick={() => {
               setShowSearch(true)
               setShowActivity(false)
@@ -372,10 +405,17 @@ function App() {
               setSelectedGameId(null)
             }}
           >
-            🔍 Buscar jogos
+            + Adicionar jogo
           </button>
 
-          <div className="user-avatar">V</div>
+          <div
+            className="user-avatar"
+            role="img"
+            aria-label={`Perfil de ${username || 'usuário'}`}
+            title={username || 'Usuário'}
+          >
+            {Array.from(username.trim())[0]?.toLocaleUpperCase('pt-BR') ?? '?'}
+          </div>
 
           <button className="logout-button" onClick={handleLogout}>
             Sair
@@ -480,12 +520,6 @@ function App() {
                   <p>Gerencie seus jogos e acompanhe seu progresso.</p>
                 </div>
 
-                <button
-                  className="add-game-button"
-                  onClick={() => setShowSearch(true)}
-                >
-                  + Adicionar jogo
-                </button>
               </section>
 
               <section className="library-summary">

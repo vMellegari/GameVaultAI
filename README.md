@@ -43,6 +43,37 @@ WebP, com até 5 MB por imagem.
 frontend, copie `frontend/.env.example` para `frontend/.env` e ajuste
 `VITE_API_URL` se a API não estiver em `http://localhost:8000`.
 
+## Executar a aplicação completa com Docker
+
+Copie o exemplo de ambiente. Para um ambiente publicado, configure `SECRET_KEY`
+e `POSTGRES_PASSWORD` com valores fortes. Use uma senha de banco formada por
+caracteres seguros para URL e mantenha a mesma senha em `DATABASE_URL` ao
+executar a API fora do Docker. Os valores do arquivo de exemplo são apenas para
+desenvolvimento local.
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build -d
+```
+
+O Compose inicia o PostgreSQL, aplica as migrações do Alembic antes de iniciar
+a API e serve o frontend pelo Nginx. A aplicação fica em
+`http://localhost:8080`; a API e sua documentação ficam em `http://localhost:8000`
+e `http://localhost:8000/docs`. Os dados do banco e as imagens das sessões
+ficam em volumes Docker persistentes. `docker compose down` preserva esses
+volumes.
+
+Para publicar em um servidor, defina `VITE_API_URL` como o endereço público da
+API e `CORS_ORIGINS` como a origem pública do frontend antes de construir as
+imagens. Use HTTPS no proxy reverso e credenciais próprias para o ambiente.
+O banco não é publicado em interfaces de rede externas pelo Compose.
+
+## Integração contínua
+
+O workflow do GitHub Actions executa `pytest`, ESLint e o build do frontend em
+cada push e pull request. Os testes usam SQLite e não precisam de chaves RAWG
+ou Gemini nem de um serviço PostgreSQL.
+
 Crie um ambiente virtual e instale as dependências:
 
 ```powershell

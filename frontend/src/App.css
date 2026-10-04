@@ -44,19 +44,6 @@
   gap: 16px;
 }
 
-.search-button {
-  padding: 9px 14px;
-  border: 1px solid var(--gv-border);
-  border-radius: 8px;
-  background: var(--gv-surface);
-  color: var(--gv-text-secondary);
-  cursor: pointer;
-}
-
-.search-button:hover {
-  background: var(--gv-surface-hover);
-}
-
 .user-avatar {
   width: 36px;
   height: 36px;
@@ -66,16 +53,18 @@
   justify-content: center;
 
   border-radius: 50%;
-  background: var(--gv-accent);
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: linear-gradient(145deg, #8586ff, var(--gv-accent-hover));
   color: white;
   font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 5px 14px rgb(99 102 241 / 25%);
 }
 
 .layout {
   display: flex;
   min-height: calc(100vh - 72px);
-  max-width: 1800px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .sidebar {
@@ -136,6 +125,7 @@
   width: 0;
   padding: 36px clamp(22px, 3.2vw, 52px) 56px;
   max-width: 1400px;
+  margin-inline: auto;
 }
 
 .page-header {
@@ -159,6 +149,7 @@
 }
 
 .add-game-button {
+  flex-shrink: 0;
   border: 0;
   border-radius: var(--gv-radius-sm);
 
@@ -386,23 +377,28 @@
   }
 
   .logo h1 {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .topbar-actions {
-    gap: 8px;
-  }
-
-  .search-button {
-    display: none;
+    gap: 7px;
   }
 
   .user-avatar {
-    display: none;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    font-size: 13px;
+  }
+
+  .topbar .add-game-button {
+    padding: 7px 8px;
+    font-size: 11px;
   }
 
   .logout-button {
-    padding: 7px 10px;
+    padding: 7px 8px;
+    font-size: 12px;
   }
 
   .content {
@@ -412,10 +408,6 @@
 
   .page-header {
     gap: 14px;
-  }
-
-  .page-header .add-game-button {
-    width: 100%;
   }
 
   .games-grid {

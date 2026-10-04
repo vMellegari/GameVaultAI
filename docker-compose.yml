@@ -1,16 +1,69 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: gamevault-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: gamevault
-      POSTGRES_USER: gamevault
-      POSTGRES_PASSWORD: gamevault
+      POSTGRES_DB: ${POSTGRES_DB:-gamevault}
+      POSTGRES_USER: ${POSTGRES_USER:-gamevault}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gamevault}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-gamevault}:${POSTGRES_PASSWORD:-gamevault}@db:5432/${POSTGRES_DB:-gamevault}
+      SECRET_KEY: ${SECRET_KEY:?Configure SECRET_KEY in .env}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      RAWG_API_KEY: ${RAWG_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GAMEVAULT_MEDIA_DIR: /app/data/media
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - session_media:/app/data/media
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >-
+      sh -c "alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   postgres_data:
+  session_media:
