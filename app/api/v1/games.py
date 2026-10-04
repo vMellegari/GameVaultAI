@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -408,6 +408,16 @@ def get_game_session_image(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Imagem não encontrada.",
         )
+
+    if game_session_image_service.uses_remote_storage():
+        try:
+            image_bytes = game_session_image_service.get_image_bytes(image)
+        except game_session_image_service.SessionImageError as error:
+            raise HTTPException(
+                status_code=error.status_code,
+                detail=error.message,
+            ) from error
+        return Response(content=image_bytes, media_type=image.content_type)
 
     path = game_session_image_service.image_file_path(image)
     if not path.is_file():

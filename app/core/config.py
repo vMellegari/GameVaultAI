@@ -23,6 +23,15 @@ class Settings:
 
     MEDIA_DIR = os.getenv("GAMEVAULT_MEDIA_DIR", "data/media")
 
+    STORAGE_BACKEND = os.getenv("STORAGE_BACKEND", "local").lower()
+    if STORAGE_BACKEND not in {"local", "supabase"}:
+        raise RuntimeError("STORAGE_BACKEND deve ser 'local' ou 'supabase'.")
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    SUPABASE_STORAGE_BUCKET = os.getenv(
+        "SUPABASE_STORAGE_BUCKET", "game-session-images"
+    )
+
     CORS_ORIGINS = [
         origin.strip()
         for origin in os.getenv(

@@ -39,6 +39,12 @@ O padrão é `data/media`; mantenha essa pasta em armazenamento persistente e
 inclua-a nos backups do projeto. Cada sessão aceita até 5 imagens JPEG, PNG ou
 WebP, com até 5 MB por imagem.
 
+Para usar o Supabase Storage, defina `STORAGE_BACKEND=supabase` e configure
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_STORAGE_BUCKET` no
+backend. Crie previamente um bucket privado com o nome configurado. A chave de
+serviço é secreta e nunca deve ser configurada no frontend. Com
+`STORAGE_BACKEND=local` (padrão), os anexos continuam sendo salvos no disco.
+
 `CORS_ORIGINS` aceita uma lista de origens separadas por vírgula. Para o
 frontend, copie `frontend/.env.example` para `frontend/.env` e ajuste
 `VITE_API_URL` se a API não estiver em `http://localhost:8000`.
@@ -63,10 +69,12 @@ e `http://localhost:8000/docs`. Os dados do banco e as imagens das sessões
 ficam em volumes Docker persistentes. `docker compose down` preserva esses
 volumes.
 
-Para publicar em um servidor, defina `VITE_API_URL` como o endereço público da
-API e `CORS_ORIGINS` como a origem pública do frontend antes de construir as
-imagens. Use HTTPS no proxy reverso e credenciais próprias para o ambiente.
-O banco não é publicado em interfaces de rede externas pelo Compose.
+Para publicar o backend usando o Dockerfile, configure `DATABASE_URL`,
+`SECRET_KEY`, `CORS_ORIGINS` e as credenciais necessárias no painel do serviço.
+O container aplica as migrações do Alembic ao iniciar e usa a porta fornecida
+pela plataforma. Para construir o frontend, defina `VITE_API_URL` como o
+endereço público da API antes do build. Não use as credenciais de exemplo em
+ambientes publicados.
 
 ## Integração contínua
 
@@ -129,9 +137,10 @@ fazem requisições reais às APIs externas.
 
 ## Sessões de jogo e imagens
 
-As sessões são associadas ao jogo e atualizam o total de horas jogadas. Seus
-anexos ficam em arquivos locais; o PostgreSQL armazena apenas os metadados. As
-rotas de leitura, envio e exclusão de imagens exigem autenticação JWT.
+As sessões são associadas ao jogo e atualizam o total de horas jogadas. O
+PostgreSQL armazena os metadados dos anexos; os arquivos podem ficar no disco
+local ou em um bucket privado do Supabase Storage. As rotas de leitura, envio e
+exclusão de imagens exigem autenticação JWT.
 
 ## Principais endpoints
 

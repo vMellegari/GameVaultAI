@@ -29,6 +29,10 @@ services:
       RAWG_API_KEY: ${RAWG_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GAMEVAULT_MEDIA_DIR: /app/data/media
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      SUPABASE_STORAGE_BUCKET: ${SUPABASE_STORAGE_BUCKET:-game-session-images}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
     ports:
       - "${API_PORT:-8000}:8000"

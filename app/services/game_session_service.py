@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from app.models.game import Game
 from app.models.game_session import GameSession
 from app.models.user import User
-from app.services.game_session_image_service import image_file_path, remove_files
+from app.services.game_session_image_service import remove_files
 
 
 def get_game_sessions(
@@ -262,7 +262,9 @@ def delete_game_session(
         return None
 
     duration_minutes = game_session.duration_minutes
-    image_paths = [image_file_path(image) for image in game_session.images]
+    image_objects = [
+        (image.storage_key, image.content_type) for image in game_session.images
+    ]
     game.hours_played = max(
         0,
         round(game.hours_played - duration_minutes / 60, 2),
@@ -270,5 +272,5 @@ def delete_game_session(
 
     db.delete(game_session)
     db.commit()
-    remove_files(image_paths)
+    remove_files(image_objects)
     return duration_minutes

@@ -1,6 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
+import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -61,6 +62,41 @@ def image_file_path(image: GameSessionImage) -> Path:
     return _media_directory() / f"{image.storage_key}{extension}"
 
 
+def _is_supabase_storage() -> bool:
+    return settings.STORAGE_BACKEND == "supabase"
+
+
+def uses_remote_storage() -> bool:
+    return _is_supabase_storage()
+
+
+def _supabase_object_path(image: GameSessionImage) -> str:
+    extension = _IMAGE_FORMATS.get(image.content_type, ("", None))[0]
+    return f"session-images/{image.storage_key}{extension}"
+
+
+def _supabase_headers(content_type: str | None = None) -> dict[str, str]:
+    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
+        raise SessionImageError(
+            503,
+            "O armazenamento de imagens não está configurado corretamente.",
+        )
+    headers = {
+        "apikey": settings.SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {settings.SUPABASE_SERVICE_ROLE_KEY}",
+    }
+    if content_type:
+        headers["Content-Type"] = content_type
+    return headers
+
+
+def _supabase_object_url(object_path: str) -> str:
+    return (
+        f"{settings.SUPABASE_URL}/storage/v1/object/"
+        f"{settings.SUPABASE_STORAGE_BUCKET}/{object_path}"
+    )
+
+
 def store_session_images(
     db: Session,
     session: GameSession,
@@ -103,31 +139,53 @@ def store_session_images(
         validated_uploads.append((safe_filename, data, content_type, extension))
 
     directory = _media_directory()
-    directory.mkdir(parents=True, exist_ok=True)
-    created_paths: list[Path] = []
+    if not _is_supabase_storage():
+        directory.mkdir(parents=True, exist_ok=True)
+    created_objects: list[tuple[str, str]] = []
     images = []
 
     try:
         for filename, data, content_type, extension in validated_uploads:
             storage_key = str(uuid4())
-            path = directory / f"{storage_key}{extension}"
-            created_paths.append(path)
-            path.write_bytes(data)
-            images.append(
-                GameSessionImage(
-                    session_id=session.id,
-                    storage_key=storage_key,
-                    original_filename=filename,
-                    content_type=content_type,
-                    file_size=len(data),
-                )
+            image = GameSessionImage(
+                session_id=session.id,
+                storage_key=storage_key,
+                original_filename=filename,
+                content_type=content_type,
+                file_size=len(data),
             )
+            if _is_supabase_storage():
+                object_path = _supabase_object_path(image)
+                try:
+                    response = httpx.post(
+                        _supabase_object_url(object_path),
+                        headers={
+                            **_supabase_headers(content_type),
+                            "x-upsert": "false",
+                        },
+                        content=data,
+                        timeout=30,
+                    )
+                except httpx.HTTPError as error:
+                    raise SessionImageError(
+                        502, "Não foi possível conectar ao armazenamento de imagens."
+                    ) from error
+                if response.is_error:
+                    raise SessionImageError(
+                        502, "Não foi possível armazenar a imagem no Supabase."
+                    )
+                created_objects.append((storage_key, content_type))
+            else:
+                path = directory / f"{storage_key}{extension}"
+                path.write_bytes(data)
+                created_objects.append((storage_key, content_type))
+            images.append(image)
 
         db.add_all(images)
         db.commit()
     except Exception:
         db.rollback()
-        remove_files(created_paths)
+        remove_files(created_objects)
         raise
 
     for image in images:
@@ -157,26 +215,77 @@ def get_owned_image(
 
 
 def delete_image(db: Session, image: GameSessionImage) -> None:
-    path = image_file_path(image)
+    storage_object = (image.storage_key, image.content_type)
     db.delete(image)
     db.commit()
-    remove_files([path])
+    remove_files([storage_object])
 
 
-def get_game_image_paths(db: Session, game_id: int) -> list[Path]:
+def get_game_image_paths(db: Session, game_id: int) -> list[tuple[str, str]]:
     images = (
         db.query(GameSessionImage)
         .join(GameSession, GameSession.id == GameSessionImage.session_id)
         .filter(GameSession.game_id == game_id)
         .all()
     )
-    return [image_file_path(image) for image in images]
+    return [(image.storage_key, image.content_type) for image in images]
 
 
-def remove_files(paths: list[Path]) -> None:
-    for path in paths:
+def get_image_bytes(image: GameSessionImage) -> bytes:
+    if _is_supabase_storage():
         try:
-            path.unlink(missing_ok=True)
-        except OSError:
+            response = httpx.get(
+                _supabase_object_url(_supabase_object_path(image)),
+                headers=_supabase_headers(),
+                timeout=30,
+            )
+            response.raise_for_status()
+            return response.content
+        except httpx.HTTPStatusError as error:
+            status_code = 404 if error.response.status_code == 404 else 502
+            raise SessionImageError(
+                status_code,
+                "Arquivo de imagem não encontrado no armazenamento."
+                if status_code == 404
+                else "Não foi possível obter a imagem do armazenamento.",
+            ) from error
+        except httpx.HTTPError as error:
+            raise SessionImageError(
+                502, "Não foi possível conectar ao armazenamento de imagens."
+            ) from error
+    path = image_file_path(image)
+    if not path.is_file():
+        raise SessionImageError(404, "Arquivo de imagem não encontrado.")
+    return path.read_bytes()
+
+
+def remove_files(objects: list[tuple[str, str] | Path]) -> None:
+    for stored_object in objects:
+        try:
+            if isinstance(stored_object, Path):
+                stored_object.unlink(missing_ok=True)
+            elif _is_supabase_storage():
+                storage_key, content_type = stored_object
+                image = GameSessionImage(
+                    storage_key=storage_key,
+                    content_type=content_type,
+                )
+                object_path = _supabase_object_path(image)
+                response = httpx.delete(
+                    f"{settings.SUPABASE_URL}/storage/v1/object/"
+                    f"{settings.SUPABASE_STORAGE_BUCKET}",
+                    headers=_supabase_headers(),
+                    json={"prefixes": [object_path]},
+                    timeout=30,
+                )
+                response.raise_for_status()
+            else:
+                storage_key, content_type = stored_object
+                image = GameSessionImage(
+                    storage_key=storage_key,
+                    content_type=content_type,
+                )
+                image_file_path(image).unlink(missing_ok=True)
+        except (OSError, httpx.HTTPError, SessionImageError):
             # A cleanup failure must not undo a successful database deletion.
             continue
