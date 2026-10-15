@@ -90,6 +90,7 @@ Registros:
                 "schema": GameSessionInsightsContent.model_json_schema(),
             },
             generation_config={"thinking_level": "low"},
+            retries=False,
         )
     except Exception as error:
         status_code = get_gemini_http_status(error)

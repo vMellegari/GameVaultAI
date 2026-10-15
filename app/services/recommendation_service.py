@@ -161,7 +161,8 @@ Biblioteca do usuário:
             },
             generation_config={
                 "thinking_level": "low"
-            }
+            },
+            retries=False,
         )
     except Exception as error:
         status_code = get_gemini_http_status(error)
