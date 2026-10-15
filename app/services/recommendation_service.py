@@ -1,7 +1,10 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
+import time
 
 from google import genai
 from google.genai.errors import APIError
+import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -47,35 +50,52 @@ def enrich_recommendations_with_rawg(
 ) -> RecommendationResponse:
     """Adiciona dados da RAWG às recomendações geradas pelo Gemini."""
 
-    for recommendation in recommendations.recommendations:
-        try:
-            games = search_games(recommendation.title)
-        except RawgProviderError:
-            logger.warning(
-                "Could not enrich recommendation with RAWG: %s",
-                recommendation.title,
+    if not recommendations.recommendations:
+        return recommendations
+
+    started_at = time.perf_counter()
+    worker_count = min(3, len(recommendations.recommendations))
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        searches = {
+            executor.submit(search_games, recommendation.title): recommendation
+            for recommendation in recommendations.recommendations
+        }
+
+        for future in as_completed(searches):
+            recommendation = searches[future]
+            try:
+                games = future.result()
+            except RawgProviderError:
+                logger.warning(
+                    "Could not enrich recommendation with RAWG: %s",
+                    recommendation.title,
+                )
+                continue
+
+            if not games:
+                continue
+
+            recommendation_title = recommendation.title.lower().strip()
+
+            exact_match = next(
+                (
+                    game
+                    for game in games
+                    if game.get("title", "").lower().strip()
+                    == recommendation_title
+                ),
+                None,
             )
-            continue
 
-        if not games:
-            continue
+            game = exact_match or games[0]
+            recommendation.rawg_id = game.get("rawg_id")
+            recommendation.cover_image = game.get("cover_image")
 
-        recommendation_title = recommendation.title.lower().strip()
-
-        exact_match = next(
-            (
-                game
-                for game in games
-                if game.get("title", "").lower().strip() == recommendation_title
-            ),
-            None
-        )
-
-        game = exact_match or games[0]
-
-        recommendation.rawg_id = game.get("rawg_id")
-        recommendation.cover_image = game.get("cover_image")
-
+    logger.info(
+        "RAWG recommendation enrichment finished in %.2fs (%d items)",
+        time.perf_counter() - started_at,
+        len(recommendations.recommendations),
+    )
     return recommendations
 
 
@@ -92,8 +112,14 @@ def generate_recommendations(db: Session, owner: User):
             "recommendations": []
         }
 
+    if not settings.GEMINI_API_KEY:
+        raise RecommendationProviderError(
+            503, "Configure GEMINI_API_KEY para gerar recomendações."
+        )
+
     client = genai.Client(
-        api_key=settings.GEMINI_API_KEY
+        api_key=settings.GEMINI_API_KEY,
+        http_options={"timeout": 45000},
     )
 
     prompt = f"""
@@ -123,6 +149,7 @@ Biblioteca do usuário:
 {games}
 """
 
+    gemini_started_at = time.perf_counter()
     try:
         interaction = client.interactions.create(
             model="gemini-3.6-flash",
@@ -143,13 +170,37 @@ Biblioteca do usuário:
                 429,
                 "O limite de requisições do Gemini foi atingido. Aguarde e tente novamente.",
             ) from error
+        if error.code == 504:
+            raise RecommendationProviderError(
+                504,
+                "O Gemini demorou para responder. Aguarde um pouco e tente novamente.",
+            ) from error
         raise RecommendationProviderError(
             502,
             "O serviço de recomendações está indisponível no momento. Tente novamente mais tarde.",
         ) from error
+    except httpx.TimeoutException as error:
+        logger.warning("Gemini recommendations request timed out")
+        raise RecommendationProviderError(
+            504,
+            "O Gemini demorou para responder. Aguarde um pouco e tente novamente.",
+        ) from error
+    except httpx.HTTPError as error:
+        logger.exception("Gemini recommendations connection failed")
+        raise RecommendationProviderError(
+            502,
+            "Não foi possível conectar ao Gemini. Tente novamente mais tarde.",
+        ) from error
+
+    logger.info(
+        "Gemini recommendation generation finished in %.2fs",
+        time.perf_counter() - gemini_started_at,
+    )
 
     if interaction.output_text is None:
-        raise RuntimeError("O Gemini não retornou uma resposta válida.")
+        raise RecommendationProviderError(
+            502, "O Gemini não retornou uma resposta válida. Tente novamente."
+        )
 
     recommendations = RecommendationResponse.model_validate_json(
         interaction.output_text

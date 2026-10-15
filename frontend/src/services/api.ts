@@ -589,9 +589,16 @@ export async function getGameStats() {
 }
 
 export async function getRecommendations() {
-  const response = await fetch(`${API_URL}/games/recommendations`, {
-    headers: getAuthHeaders(),
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_URL}/games/recommendations`, {
+      headers: getAuthHeaders(),
+    })
+  } catch {
+    throw new Error(
+      'A conexão com a API foi interrompida. O serviço pode estar reiniciando ou demorando para responder; tente novamente em instantes.',
+    )
+  }
 
   if (response.status === 401) {
     localStorage.removeItem('access_token')
