@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { login } from '../services/api'
+import { login, register } from '../services/api'
 import './Login.css'
 
 interface LoginProps {
@@ -9,7 +9,9 @@ interface LoginProps {
 
 function Login({ onLogin }: LoginProps) {
   const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isRegistering, setIsRegistering] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -20,13 +22,21 @@ function Login({ onLogin }: LoginProps) {
     setLoading(true)
 
     try {
+      if (isRegistering) {
+        await register(username, email, password)
+      }
+
       const data = await login(username, password)
 
       localStorage.setItem('access_token', data.access_token)
 
       onLogin()
-    } catch {
-      setError('Usuário ou senha inválidos.')
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : 'Não foi possível concluir a operação.',
+      )
     } finally {
       setLoading(false)
     }
@@ -39,7 +49,11 @@ function Login({ onLogin }: LoginProps) {
 
         <h1>GameVault AI</h1>
 
-        <p>Entre na sua conta para acessar sua biblioteca.</p>
+        <p>
+          {isRegistering
+            ? 'Crie sua conta para começar sua biblioteca.'
+            : 'Entre na sua conta para acessar sua biblioteca.'}
+        </p>
 
         <form onSubmit={handleSubmit}>
           <label>
@@ -53,13 +67,28 @@ function Login({ onLogin }: LoginProps) {
             />
           </label>
 
+          {isRegistering && (
+            <label>
+              E-mail
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="voce@exemplo.com"
+                autoComplete="email"
+                required
+              />
+            </label>
+          )}
+
           <label>
             Senha
             <input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Digite sua senha"
+              placeholder={isRegistering ? 'Crie uma senha' : 'Digite sua senha'}
+              autoComplete={isRegistering ? 'new-password' : 'current-password'}
               required
             />
           </label>
@@ -67,9 +96,29 @@ function Login({ onLogin }: LoginProps) {
           {error && <p className="login-error">{error}</p>}
 
           <button type="submit" className="login-button" disabled={loading}>
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading
+              ? isRegistering
+                ? 'Criando conta...'
+                : 'Entrando...'
+              : isRegistering
+                ? 'Criar conta'
+                : 'Entrar'}
           </button>
         </form>
+
+        <button
+          type="button"
+          className="auth-mode-button"
+          onClick={() => {
+            setIsRegistering((current) => !current)
+            setError('')
+          }}
+          disabled={loading}
+        >
+          {isRegistering
+            ? 'Já tem uma conta? Entrar'
+            : 'Ainda não tem uma conta? Cadastre-se'}
+        </button>
       </div>
     </main>
   )

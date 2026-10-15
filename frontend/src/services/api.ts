@@ -24,7 +24,29 @@ export async function login(username: string, password: string) {
   })
 
   if (!response.ok) {
-    throw new Error('Usuário ou senha inválidos.')
+    const error = await response.json().catch(() => null)
+    throw new Error(error?.detail || 'Usuário ou senha inválidos.')
+  }
+
+  return response.json()
+}
+
+export async function register(
+  username: string,
+  email: string,
+  password: string,
+) {
+  const response = await fetch(`${API_URL}/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username, email, password }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => null)
+    throw new Error(error?.detail || 'Não foi possível criar sua conta.')
   }
 
   return response.json()
