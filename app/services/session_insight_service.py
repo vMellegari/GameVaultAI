@@ -2,7 +2,6 @@ import json
 import logging
 
 from google import genai
-from google.genai.errors import APIError
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.config import settings
@@ -13,6 +12,7 @@ from app.schemas.game_session import (
     GameSessionInsightsContent,
     GameSessionInsightsResponse,
 )
+from app.services.gemini_error_service import get_gemini_http_status
 
 logger = logging.getLogger(__name__)
 MAX_SESSIONS_FOR_ANALYSIS = 30
@@ -91,12 +91,22 @@ Registros:
             },
             generation_config={"thinking_level": "low"},
         )
-    except APIError as error:
-        logger.exception("Gemini session analysis failed (status=%s)", error.code)
-        if error.code == 429:
+    except Exception as error:
+        status_code = get_gemini_http_status(error)
+        logger.exception(
+            "Gemini session analysis failed (status=%s, type=%s)",
+            status_code,
+            type(error).__name__,
+        )
+        if status_code == 429:
             raise SessionInsightProviderError(
                 429,
-                "O limite de requisições do Gemini foi atingido. Aguarde e tente novamente.",
+                "O Gemini informou que a cota do projeto foi excedida. Confira os limites e o uso no Google AI Studio antes de tentar novamente.",
+            ) from error
+        if status_code == 504:
+            raise SessionInsightProviderError(
+                504,
+                "O Gemini demorou para responder. Aguarde um pouco e tente novamente.",
             ) from error
         raise SessionInsightProviderError(
             502,

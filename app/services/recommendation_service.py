@@ -3,7 +3,6 @@ import logging
 import time
 
 from google import genai
-from google.genai.errors import APIError
 import httpx
 from sqlalchemy.orm import Session
 
@@ -11,6 +10,7 @@ from app.core.config import settings
 from app.models.game import Game
 from app.models.user import User
 from app.schemas.recommendation import RecommendationResponse
+from app.services.gemini_error_service import get_gemini_http_status
 from app.services.rawg_service import RawgProviderError, search_games
 
 logger = logging.getLogger(__name__)
@@ -163,33 +163,31 @@ Biblioteca do usuário:
                 "thinking_level": "low"
             }
         )
-    except APIError as error:
-        logger.exception("Gemini recommendations request failed (status=%s)", error.code)
-        if error.code == 429:
+    except Exception as error:
+        status_code = get_gemini_http_status(error)
+        logger.exception(
+            "Gemini recommendations request failed (status=%s, type=%s)",
+            status_code,
+            type(error).__name__,
+        )
+        if status_code == 429:
             raise RecommendationProviderError(
                 429,
-                "O limite de requisições do Gemini foi atingido. Aguarde e tente novamente.",
+                "O Gemini informou que a cota do projeto foi excedida. Confira os limites e o uso no Google AI Studio antes de tentar novamente.",
             ) from error
-        if error.code == 504:
+        if status_code == 504 or isinstance(error, httpx.TimeoutException):
             raise RecommendationProviderError(
                 504,
                 "O Gemini demorou para responder. Aguarde um pouco e tente novamente.",
             ) from error
+        if isinstance(error, httpx.HTTPError):
+            raise RecommendationProviderError(
+                502,
+                "Não foi possível conectar ao Gemini. Tente novamente mais tarde.",
+            ) from error
         raise RecommendationProviderError(
             502,
             "O serviço de recomendações está indisponível no momento. Tente novamente mais tarde.",
-        ) from error
-    except httpx.TimeoutException as error:
-        logger.warning("Gemini recommendations request timed out")
-        raise RecommendationProviderError(
-            504,
-            "O Gemini demorou para responder. Aguarde um pouco e tente novamente.",
-        ) from error
-    except httpx.HTTPError as error:
-        logger.exception("Gemini recommendations connection failed")
-        raise RecommendationProviderError(
-            502,
-            "Não foi possível conectar ao Gemini. Tente novamente mais tarde.",
         ) from error
 
     logger.info(
