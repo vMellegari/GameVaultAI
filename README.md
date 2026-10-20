@@ -1,12 +1,66 @@
-# GameVault AI
+# GameVaultAI
 
-Aplicação full stack para gerenciamento de uma biblioteca pessoal de jogos. O
-backend usa FastAPI, SQLAlchemy e PostgreSQL; o frontend usa React, TypeScript e
-Vite. O projeto também integra a RAWG e recomendações com Google Gemini.
+Aplicação full stack para organizar uma biblioteca pessoal de jogos, registrar
+sessões e acompanhar o progresso. O projeto integra dados da RAWG e recomendações
+com Google Gemini.
+
+## Funcionalidades
+
+- Cadastro e autenticação de usuários com JWT.
+- Biblioteca pessoal com busca, filtros, favoritos e paginação.
+- Pesquisa e importação de jogos da RAWG.
+- Tipos de experiência `STANDARD` e `ONGOING`, com regras de status para jogos contínuos.
+- Detalhes, edição, avaliação, horas jogadas e data de conclusão.
+- Histórico de sessões, estatísticas e anexos de imagens.
+- Gravação de tela associada a uma sessão, com reprodução e download local.
+- Recomendações de jogos com Gemini, enriquecidas com informações da RAWG.
+
+## Stack e arquitetura
+
+- **Frontend:** React, TypeScript e Vite.
+- **Backend:** FastAPI, SQLAlchemy e Pydantic.
+- **Banco de dados:** PostgreSQL, com migrações pelo Alembic.
+- **Integrações:** RAWG e Google Gemini (`google-genai`).
+- **Infraestrutura local:** Docker Compose.
+- **Qualidade:** pytest, ESLint, build do frontend e GitHub Actions.
+
+Na versão publicada, a Vercel hospeda o frontend, o Render executa a API em
+container e o Supabase fornece o PostgreSQL. O Supabase Storage pode armazenar
+os prints das sessões quando configurado. As gravações de gameplay permanecem
+no navegador do usuário.
+
+```mermaid
+flowchart LR
+    Browser[Navegador] --> Vercel[Frontend · Vercel]
+    Vercel --> Render[API FastAPI · Render]
+    Render --> SupabaseDB[(PostgreSQL · Supabase)]
+    Render --> RAWG[API RAWG]
+    Render --> Gemini[API Gemini]
+    Render -. prints, se configurado .-> Storage[Supabase Storage]
+    Browser --> Local[(Clipes · IndexedDB local)]
+```
+
+## Mídia e privacidade
+
+- **Prints das sessões:** enviados à API e armazenados no disco ou no Supabase
+  Storage, conforme `STORAGE_BACKEND`.
+- **Clipes de gameplay:** capturados após o usuário escolher uma tela ou janela.
+  São guardados no IndexedDB deste navegador e dispositivo, associados ao jogo e
+  à sessão. Não são enviados ao backend, à nuvem ou ao Gemini. Use **Baixar**
+  para exportar uma cópia `.webm`.
+- A captura exige um navegador compatível e contexto seguro, como HTTPS ou
+  `localhost`. O navegador pede permissão para compartilhar a tela; o áudio
+  depende do navegador e da opção escolhida.
+- Os clipes locais podem ser removidos ao limpar os dados do site ou se o
+  navegador precisar liberar espaço. Baixe os vídeos que quiser preservar. O
+  limite atual é de 15 minutos por clipe.
+- A análise de vídeos com IA ainda não está implementada. As recomendações atuais
+  dependem da disponibilidade e da cota da API Gemini.
 
 ## Requisitos
 
 - Python 3.14.5
+- Node.js 24 e npm
 - Docker Desktop com Docker Compose
 - Uma chave da API RAWG para busca, importação e atualização de dados
 - Uma chave da API Gemini para recomendações
@@ -76,6 +130,30 @@ pela plataforma. Para construir o frontend, defina `VITE_API_URL` como o
 endereço público da API antes do build. Não use as credenciais de exemplo em
 ambientes publicados.
 
+## Arquitetura de produção
+
+Os serviços publicados têm responsabilidades separadas:
+
+1. **Vercel:** compila e hospeda o frontend. Configure `VITE_API_URL` com a URL
+   pública do backend; essa variável é incorporada durante o build.
+2. **Render:** executa a API a partir do `Dockerfile`. Configure no serviço as
+   variáveis do backend, incluindo `DATABASE_URL`, `SECRET_KEY` e
+   `CORS_ORIGINS`. A origem permitida deve incluir a URL pública do frontend.
+3. **Supabase Database:** fornece o PostgreSQL. Configure sua URL em
+   `DATABASE_URL`; o container aplica as migrações do Alembic ao iniciar.
+4. **Supabase Storage (opcional):** armazena os prints enviados pelos usuários.
+   Configure um bucket privado, `STORAGE_BACKEND=supabase` e as variáveis
+   `SUPABASE_*`. A chave `SUPABASE_SERVICE_ROLE_KEY` deve existir somente no
+   ambiente do backend.
+
+As chaves RAWG e Gemini também ficam no backend. Indisponibilidade ou limite de
+cota nessas APIs pode afetar busca/importação ou recursos de IA, sem afetar os
+clipes locais.
+
+Alterações no frontend exigem um novo deploy na Vercel. Alterações no backend
+exigem um novo deploy no Render. Se `VITE_API_URL` mudar, o frontend precisa ser
+reconstruído para receber o novo endereço.
+
 ## Integração contínua
 
 O workflow do GitHub Actions executa `pytest`, ESLint e o build do frontend em
@@ -135,12 +213,16 @@ pytest -q
 Os testes usam um banco SQLite separado e mocks para a RAWG e o Gemini; não
 fazem requisições reais às APIs externas.
 
-## Sessões de jogo e imagens
+## Sessões de jogo, prints e clipes
 
 As sessões são associadas ao jogo e atualizam o total de horas jogadas. O
 PostgreSQL armazena os metadados dos anexos; os arquivos podem ficar no disco
 local ou em um bucket privado do Supabase Storage. As rotas de leitura, envio e
 exclusão de imagens exigem autenticação JWT.
+
+Para gravar, registre uma sessão e use **Gravar tela** dentro dela. Os controles
+da sessão permitem reproduzir, baixar ou excluir os clipes locais. A análise de
+vídeos com IA ainda não está implementada.
 
 ## Principais endpoints
 

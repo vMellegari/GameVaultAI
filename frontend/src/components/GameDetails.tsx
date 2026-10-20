@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { deleteGame, getGame, updateGame } from '../services/api'
+import { deleteLocalGameplayClipsForGame } from '../services/localGameplayClipStore'
 import GameSessions from './GameSessions'
 import './GameDetails.css'
 
@@ -177,6 +178,7 @@ function GameDetails({
 
     try {
       await deleteGame(game.id)
+      await deleteLocalGameplayClipsForGame(game.id).catch(() => {})
       onDeleted()
       onClose()
     } catch {
@@ -474,6 +476,7 @@ function GameDetails({
       {!editing && (
         <GameSessions
           gameId={game.id}
+          gameTitle={game.title}
           onHoursChanged={(changeInHours) => {
             const updatedGame = {
               ...game,

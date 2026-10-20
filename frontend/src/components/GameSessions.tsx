@@ -9,10 +9,13 @@ import {
   type GameSession,
   type GameSessionImage,
 } from '../services/api'
+import { deleteLocalGameplayClipsForSession } from '../services/localGameplayClipStore'
+import LocalGameplayClips from './LocalGameplayClips'
 import './GameSessions.css'
 
 interface GameSessionsProps {
   gameId: number
+  gameTitle: string
   onHoursChanged: (changeInHours: number) => void
 }
 
@@ -100,7 +103,7 @@ function SessionImagePreview({
   )
 }
 
-function GameSessions({ gameId, onHoursChanged }: GameSessionsProps) {
+function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) {
   const [sessions, setSessions] = useState<GameSession[]>([])
   const [duration, setDuration] = useState('60')
   const [playedAt, setPlayedAt] = useState(() =>
@@ -197,6 +200,7 @@ function GameSessions({ gameId, onHoursChanged }: GameSessionsProps) {
 
     try {
       await deleteGameSession(gameId, session.id)
+      await deleteLocalGameplayClipsForSession(gameId, session.id).catch(() => {})
       setSessions((current) =>
         current.filter((currentSession) => currentSession.id !== session.id),
       )
@@ -364,6 +368,11 @@ function GameSessions({ gameId, onHoursChanged }: GameSessionsProps) {
                     <strong>{formatDuration(session.duration_minutes)}</strong>
                   </div>
                   {session.notes && <p>{session.notes}</p>}
+                  <LocalGameplayClips
+                    gameId={gameId}
+                    gameTitle={gameTitle}
+                    sessionId={session.id}
+                  />
                   {session.images.length > 0 && (
                     <div className="game-session-images">
                       {session.images.map((image) => (
