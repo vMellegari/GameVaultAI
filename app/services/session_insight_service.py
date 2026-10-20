@@ -12,7 +12,10 @@ from app.schemas.game_session import (
     GameSessionInsightsContent,
     GameSessionInsightsResponse,
 )
-from app.services.gemini_error_service import get_gemini_http_status
+from app.services.gemini_error_service import (
+    create_interaction_with_fallback,
+    get_gemini_http_status,
+)
 
 logger = logging.getLogger(__name__)
 MAX_SESSIONS_FOR_ANALYSIS = 30
@@ -81,8 +84,10 @@ Registros:
 
     client = genai.Client(api_key=settings.GEMINI_API_KEY)
     try:
-        interaction = client.interactions.create(
-            model="gemini-3.6-flash",
+        interaction = create_interaction_with_fallback(
+            client,
+            primary_model=settings.GEMINI_MODEL,
+            fallback_model=settings.GEMINI_FALLBACK_MODEL,
             input=prompt,
             response_format={
                 "type": "text",

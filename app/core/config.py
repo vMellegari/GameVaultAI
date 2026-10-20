@@ -20,6 +20,14 @@ class Settings:
         "GEMINI_API_KEY",
         ""
     )
+    GEMINI_MODEL = os.getenv(
+        "GEMINI_MODEL",
+        "gemini-3.6-flash",
+    )
+    GEMINI_FALLBACK_MODEL = os.getenv(
+        "GEMINI_FALLBACK_MODEL",
+        "gemini-3.5-flash-lite",
+    )
 
     MEDIA_DIR = os.getenv("GAMEVAULT_MEDIA_DIR", "data/media")
 

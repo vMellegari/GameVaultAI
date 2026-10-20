@@ -87,6 +87,11 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 Coloque o valor gerado em `SECRET_KEY` no `.env`. `RAWG_API_KEY` e
 `GEMINI_API_KEY` habilitam as integrações correspondentes.
+`GEMINI_MODEL` seleciona o modelo usado nas recomendações e análises de sessões;
+se omitido, o padrão é `gemini-3.6-flash`. `GEMINI_FALLBACK_MODEL` configura o
+modelo reserva (`gemini-3.5-flash-lite` por padrão), usado quando o principal
+estiver indisponível ou o serviço retornar um erro temporário. Erros de cota
+(`429`) não acionam o fallback para evitar chamadas extras sem benefício.
 
 `GAMEVAULT_MEDIA_DIR` define onde os anexos de imagem das sessões são salvos.
 O padrão é `data/media`; mantenha essa pasta em armazenamento persistente e

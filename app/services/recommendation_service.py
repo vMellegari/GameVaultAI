@@ -10,7 +10,10 @@ from app.core.config import settings
 from app.models.game import Game
 from app.models.user import User
 from app.schemas.recommendation import RecommendationResponse
-from app.services.gemini_error_service import get_gemini_http_status
+from app.services.gemini_error_service import (
+    create_interaction_with_fallback,
+    get_gemini_http_status,
+)
 from app.services.rawg_service import RawgProviderError, search_games
 
 logger = logging.getLogger(__name__)
@@ -151,8 +154,10 @@ Biblioteca do usuário:
 
     gemini_started_at = time.perf_counter()
     try:
-        interaction = client.interactions.create(
-            model="gemini-3.6-flash",
+        interaction = create_interaction_with_fallback(
+            client,
+            primary_model=settings.GEMINI_MODEL,
+            fallback_model=settings.GEMINI_FALLBACK_MODEL,
             input=prompt,
             response_format={
                 "type": "text",

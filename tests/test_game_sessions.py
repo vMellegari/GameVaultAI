@@ -244,6 +244,10 @@ def test_session_insights_use_gemini_on_request_and_report_notes(
         "app.services.session_insight_service.genai.Client",
         lambda **kwargs: fake_client,
     )
+    monkeypatch.setattr(
+        "app.services.session_insight_service.settings.GEMINI_MODEL",
+        "test-gemini-model",
+    )
 
     response = client.post("/games/sessions/insights", headers=auth_headers)
 
@@ -251,6 +255,7 @@ def test_session_insights_use_gemini_on_request_and_report_notes(
     assert response.json()["summary"] == "Você explorou rotas alternativas."
     assert response.json()["sessions_analyzed"] == 1
     assert len(calls) == 1
+    assert calls[0]["model"] == "test-gemini-model"
     assert game["title"] in calls[0]["input"]
 
 

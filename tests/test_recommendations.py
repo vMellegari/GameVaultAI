@@ -31,6 +31,12 @@ def test_recommendations_use_gemini_and_enrich_exact_rawg_match(
     monkeypatch,
 ):
     create_game(title="Favorite RPG", game_type="STANDARD")
+    configured_model = "test-gemini-model"
+    monkeypatch.setattr(
+        recommendation_service.settings,
+        "GEMINI_MODEL",
+        configured_model,
+    )
     gemini_result = {
         "recommendations": [
             {
@@ -44,7 +50,7 @@ def test_recommendations_use_gemini_and_enrich_exact_rawg_match(
     }
 
     def fake_create(**kwargs):
-        assert kwargs["model"] == "gemini-3.6-flash"
+        assert kwargs["model"] == configured_model
         return SimpleNamespace(output_text=json.dumps(gemini_result))
 
     fake_client = SimpleNamespace(
