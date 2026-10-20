@@ -230,6 +230,38 @@ def get_game(game_id: int, db: Session = Depends(get_db), current_user: User = D
 
 
 @router.get(
+    "/games/{game_id}/screenshots",
+    response_model=list[str],
+    summary="Listar screenshots de um jogo",
+)
+def list_game_screenshots(
+    game_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    game = game_service.get_game_by_id(
+        db=db,
+        game_id=game_id,
+        owner=current_user,
+    )
+    if game is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Jogo não encontrado.",
+        )
+    if game.rawg_id is None:
+        return []
+
+    try:
+        return rawg_service.get_game_screenshots(game.rawg_id)
+    except rawg_service.RawgProviderError as error:
+        raise HTTPException(
+            status_code=error.status_code,
+            detail=error.message,
+        ) from error
+
+
+@router.get(
     "/games/{game_id}/sessions",
     response_model=list[GameSessionResponse],
     summary="Listar sessões de um jogo",

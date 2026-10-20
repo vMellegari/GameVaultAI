@@ -1,15 +1,23 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   createGameSession,
   deleteGameSession,
   deleteGameSessionImage,
   getGameSessionImage,
   getGameSessions,
+  updateGameSession,
   uploadGameSessionImages,
   type GameSession,
   type GameSessionImage,
 } from '../services/api'
-import { deleteLocalGameplayClipsForSession } from '../services/localGameplayClipStore'
+import {
+  deleteLocalGameplayClipsForSession,
+  saveLocalGameplayClip,
+  type LocalGameplayClip,
+} from '../services/localGameplayClipStore'
+import GameplaySessionRecorder, {
+  type GameplayRecordingDraft,
+} from './GameplaySessionRecorder'
 import LocalGameplayClips from './LocalGameplayClips'
 import './GameSessions.css'
 
@@ -112,9 +120,13 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [recordingFlowActive, setRecordingFlowActive] = useState(false)
   const [uploadingSessionId, setUploadingSessionId] = useState<number | null>(null)
   const [selectedImages, setSelectedImages] = useState<Record<number, File[]>>({})
   const [error, setError] = useState('')
+  const pendingRecordingSessionsRef = useRef(
+    new Map<string, { session: GameSession; notes: string }>(),
+  )
 
   useEffect(() => {
     let isCurrent = true
@@ -185,6 +197,72 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
     } finally {
       setBusy(false)
     }
+  }
+
+  async function handleSaveRecordedSession(draft: GameplayRecordingDraft) {
+    setBusy(true)
+    setError('')
+
+    try {
+      let pending = pendingRecordingSessionsRef.current.get(draft.id)
+
+      if (!pending) {
+        const durationMinutes = Math.max(1, Math.round(draft.durationMs / 60000))
+        const session = await createGameSession(gameId, {
+          played_at: draft.recordedAt,
+          duration_minutes: durationMinutes,
+          notes: draft.notes || null,
+        })
+
+        pending = { session, notes: draft.notes }
+        pendingRecordingSessionsRef.current.set(draft.id, pending)
+        setSessions((current) => [session, ...current])
+        onHoursChanged(durationMinutes / 60)
+      } else if (pending.notes !== draft.notes) {
+        const updatedSession = await updateGameSession(gameId, pending.session.id, {
+          notes: draft.notes || null,
+        })
+        pending = { session: updatedSession, notes: draft.notes }
+        pendingRecordingSessionsRef.current.set(draft.id, pending)
+        setSessions((current) =>
+          current.map((session) =>
+            session.id === updatedSession.id ? updatedSession : session,
+          ),
+        )
+      }
+
+      const clip: LocalGameplayClip = {
+        id: draft.id,
+        gameId,
+        sessionId: pending.session.id,
+        recordedAt: draft.recordedAt,
+        durationMs: draft.durationMs,
+        blob: draft.blob,
+      }
+
+      try {
+        await saveLocalGameplayClip(clip)
+      } catch (saveError) {
+        if (saveError instanceof DOMException && saveError.name === 'QuotaExceededError') {
+          throw new Error(
+            'A sessão foi registrada, mas o armazenamento local está cheio. Baixe a gravação e libere espaço para tentar salvá-la novamente.',
+            { cause: saveError },
+          )
+        }
+        throw new Error(
+          'A sessão foi registrada, mas não foi possível salvar o clipe localmente. Você pode baixar uma cópia e tentar novamente.',
+          { cause: saveError },
+        )
+      }
+
+      pendingRecordingSessionsRef.current.delete(draft.id)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function handleDiscardRecording(recordingId: string) {
+    pendingRecordingSessionsRef.current.delete(recordingId)
   }
 
   async function handleDelete(session: GameSession) {
@@ -310,6 +388,10 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
       {error && <p className="game-sessions-error">{error}</p>}
 
       <form className="game-session-form" onSubmit={handleSubmit}>
+        <div className="game-session-mode-intro">
+          <strong>Registrar manualmente</strong>
+          <p>Informe duração, horário e observações. Depois, você pode anexar prints à sessão.</p>
+        </div>
         <div className="game-session-fields">
           <label>
             Duração (minutos)
@@ -346,9 +428,23 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
           />
         </label>
 
-        <button className="game-session-submit" type="submit" disabled={busy}>
-          {busy ? 'Salvando...' : 'Registrar sessão'}
-        </button>
+        <div className="game-session-form-actions">
+          <button
+            className="game-session-submit"
+            type="submit"
+            disabled={busy || recordingFlowActive}
+          >
+            {busy ? 'Salvando...' : 'Registrar sessão'}
+          </button>
+        </div>
+
+        <div className="game-session-mode-divider"><span>ou grave uma sessão</span></div>
+        <GameplaySessionRecorder
+          gameTitle={gameTitle}
+          onSave={handleSaveRecordedSession}
+          onDiscard={handleDiscardRecording}
+          onFlowChange={setRecordingFlowActive}
+        />
       </form>
 
       <div className="game-session-history">
@@ -391,18 +487,35 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
                   )}
                   {session.images.length < 5 && (
                     <div className="game-session-image-upload">
-                      <label>
-                        Anexar prints
+                      <div className="game-session-image-picker">
+                        <label htmlFor={`session-images-${session.id}`}>
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 16 16"
+                            focusable="false"
+                          >
+                            <path d="M8 3v10M3 8h10" />
+                          </svg>
+                          Adicionar prints
+                        </label>
                         <input
+                          id={`session-images-${session.id}`}
+                          className="game-session-file-input"
                           type="file"
                           accept="image/jpeg,image/png,image/webp"
                           multiple
-                          onChange={(event) =>
-                            handleImageSelection(session, event.target.files)
-                          }
+                          onChange={(event) => {
+                            handleImageSelection(session, event.currentTarget.files)
+                            event.currentTarget.value = ''
+                          }}
                           disabled={uploadingSessionId === session.id}
                         />
-                      </label>
+                        <span className="game-session-file-hint">
+                          {selectedImages[session.id]?.length
+                            ? `${selectedImages[session.id].length} print(s) selecionado(s)`
+                            : 'JPG, PNG ou WEBP · até 5 MB cada'}
+                        </span>
+                      </div>
                       {(selectedImages[session.id]?.length ?? 0) > 0 && (
                         <button
                           type="button"

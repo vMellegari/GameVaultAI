@@ -217,6 +217,28 @@ export async function getGame(gameId: number) {
   return response.json()
 }
 
+export async function getGameScreenshots(gameId: number): Promise<string[]> {
+  const response = await fetch(`${API_URL}/games/${gameId}/screenshots`, {
+    headers: getAuthHeaders(),
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('access_token')
+    throw new Error('Sessão expirada.')
+  }
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null)
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : `Não foi possível carregar as imagens do jogo (HTTP ${response.status}).`,
+    )
+  }
+
+  return response.json()
+}
+
 export interface GameSession {
   id: number
   game_id: number

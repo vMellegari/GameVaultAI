@@ -6,9 +6,36 @@
 
 .statistics-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  gap: 20px;
   margin-bottom: 28px;
+}
+
+.statistics-header .close-button,
+.statistics-page > .close-button {
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  min-height: 38px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--gv-border);
+  border-radius: 7px;
+  background: var(--gv-surface);
+  color: var(--gv-text-muted);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.statistics-header .close-button:hover,
+.statistics-page > .close-button:hover {
+  background: var(--gv-surface-hover);
+  color: var(--gv-text);
 }
 
 .statistics-header h2 {
@@ -308,7 +335,7 @@
   }
 
   .statistics-header {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .session-statistics-heading {
@@ -321,4 +348,3 @@
     padding-bottom: 5px;
   }
 }
-

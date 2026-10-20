@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type MouseEvent } from 'react'
 import { completeGame, startGame, toggleFavorite } from '../services/api'
 import './GameCard.css'
 
@@ -33,6 +33,19 @@ function GameCard({
   onDetails,
 }: GameCardProps) {
   const [actionLoading, setActionLoading] = useState(false)
+
+  function handleCardClick(event: MouseEvent<HTMLElement>) {
+    const target = event.target
+
+    if (
+      target instanceof Element &&
+      target.closest('button, a, input, select, textarea')
+    ) {
+      return
+    }
+
+    onDetails(id)
+  }
 
   async function handleStart() {
     setActionLoading(true)
@@ -82,7 +95,7 @@ function GameCard({
   }
 
   return (
-    <article className="game-card">
+    <article className="game-card" onClick={handleCardClick}>
       <div className="game-cover">
         {coverImage ? (
           <img src={coverImage} alt={`Capa de ${title}`} />

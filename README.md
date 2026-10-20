@@ -220,9 +220,12 @@ PostgreSQL armazena os metadados dos anexos; os arquivos podem ficar no disco
 local ou em um bucket privado do Supabase Storage. As rotas de leitura, envio e
 exclusão de imagens exigem autenticação JWT.
 
-Para gravar, registre uma sessão e use **Gravar tela** dentro dela. Os controles
-da sessão permitem reproduzir, baixar ou excluir os clipes locais. A análise de
-vídeos com IA ainda não está implementada.
+Você pode registrar uma sessão manualmente, anexar prints e observações, ou usar
+**Iniciar sessão com gravação**. Nesse fluxo, a captura começa primeiro; ao
+pará-la, informe um comentário opcional e salve a sessão com o clipe. O tempo
+gravado preenche a duração da sessão. Os controles da sessão permitem
+reproduzir, baixar ou excluir clipes locais. Os comentários podem apoiar uma
+análise futura; a análise de vídeos com IA ainda não está implementada.
 
 ## Principais endpoints
 

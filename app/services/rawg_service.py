@@ -1,4 +1,5 @@
 import logging
+import time
 
 import requests
 
@@ -7,6 +8,8 @@ from app.schemas.rawg import RawgGameDetails
 
 BASE_URL = "https://api.rawg.io/api"
 logger = logging.getLogger(__name__)
+_SCREENSHOT_CACHE_TTL_SECONDS = 6 * 60 * 60
+_screenshot_cache: dict[int, tuple[float, list[str]]] = {}
 
 
 class RawgProviderError(Exception):
@@ -92,4 +95,24 @@ def get_game_details(rawg_id: int) -> RawgGameDetails | None:
         genres=genres,
         metacritic_score=game.get("metacritic"),
     )
+
+
+def get_game_screenshots(rawg_id: int) -> list[str]:
+    """Retorna screenshots da RAWG, mantendo o resultado em cache por seis horas."""
+    cached = _screenshot_cache.get(rawg_id)
+    now = time.monotonic()
+    if cached and now - cached[0] < _SCREENSHOT_CACHE_TTL_SECONDS:
+        return cached[1]
+
+    data = _request_json(
+        f"{BASE_URL}/games/{rawg_id}/screenshots",
+        {"key": settings.RAWG_API_KEY, "page_size": 10},
+    )
+    screenshots = [
+        image
+        for item in data.get("results", [])
+        if isinstance((image := item.get("image")), str) and image
+    ]
+    _screenshot_cache[rawg_id] = (now, screenshots)
+    return screenshots
     

@@ -1,0 +1,146 @@
+.gameplay-recorder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.gameplay-recorder-start,
+.gameplay-recorder-stop {
+  padding: 10px 14px;
+  border: 1px solid var(--gv-accent);
+  border-radius: 7px;
+  background: var(--gv-accent-soft);
+  color: var(--gv-accent-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gameplay-recorder-start:hover:not(:disabled) {
+  background: var(--gv-accent);
+  color: #fff;
+}
+
+.gameplay-recorder-stop {
+  border-color: #7f1d1d;
+  background: #351b20;
+  color: var(--gv-danger);
+}
+
+.gameplay-recorder-start:disabled,
+.gameplay-recorder-stop:disabled,
+.gameplay-review-actions button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.gameplay-recorder-hint {
+  color: var(--gv-text-muted);
+  font-size: 12px;
+}
+
+.gameplay-recorder-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--gv-danger);
+  font-size: 13px;
+}
+
+.gameplay-review-backdrop {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(5 7 12 / 78%);
+  backdrop-filter: blur(4px);
+}
+
+.gameplay-review-dialog {
+  width: min(100%, 560px);
+  padding: 24px;
+  border: 1px solid var(--gv-border);
+  border-radius: 14px;
+  background: var(--gv-surface);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 40%);
+}
+
+.gameplay-review-dialog h3 {
+  margin: 0;
+  color: var(--gv-text);
+  font-size: 20px;
+}
+
+.gameplay-review-dialog > p {
+  margin: 10px 0 18px;
+  color: var(--gv-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gameplay-review-dialog > label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--gv-text-secondary);
+  font-size: 13px;
+}
+
+.gameplay-review-dialog textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--gv-border);
+  border-radius: 8px;
+  outline: none;
+  background: var(--gv-surface-raised);
+  color: var(--gv-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.gameplay-review-dialog textarea:focus {
+  border-color: var(--gv-accent);
+}
+
+.gameplay-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.gameplay-review-actions button {
+  padding: 9px 12px;
+  border: 1px solid var(--gv-border);
+  border-radius: 7px;
+  background: var(--gv-surface-raised);
+  color: var(--gv-text-secondary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.gameplay-review-actions .gameplay-review-save {
+  border-color: var(--gv-accent);
+  background: var(--gv-accent);
+  color: white;
+  font-weight: 600;
+}
+
+@media (max-width: 540px) {
+  .gameplay-review-dialog {
+    padding: 18px;
+  }
+
+  .gameplay-review-actions {
+    flex-direction: column-reverse;
+  }
+
+  .gameplay-review-actions button {
+    width: 100%;
+  }
+}
