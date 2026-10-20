@@ -2,6 +2,7 @@ from unittest.mock import Mock
 import requests
 
 from app.schemas.rawg import RawgGameDetails
+from app.services import rawg_service
 
 
 def rawg_details(rawg_id=123):
@@ -247,3 +248,138 @@ def test_refresh_game_updates_rawg_details(
 
     assert response.status_code == 200
     assert response.json()["title"] == "Updated Game"
+
+
+def test_get_game_screenshots_returns_images_for_imported_game(
+    client,
+    auth_headers,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "app.services.game_service.get_game_details",
+        lambda rawg_id: rawg_details(rawg_id),
+    )
+    imported = client.post("/games/import/123", headers=auth_headers).json()
+    get_screenshots = Mock(
+        return_value=[
+            "https://example.com/screenshot-1.jpg",
+            "https://example.com/screenshot-2.jpg",
+        ]
+    )
+    monkeypatch.setattr(
+        "app.api.v1.games.rawg_service.get_game_screenshots",
+        get_screenshots,
+    )
+
+    response = client.get(
+        f"/games/{imported['id']}/screenshots",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json() == [
+        "https://example.com/screenshot-1.jpg",
+        "https://example.com/screenshot-2.jpg",
+    ]
+    get_screenshots.assert_called_once_with(123)
+
+
+def test_get_game_screenshots_returns_empty_for_manual_game(
+    client,
+    create_game,
+    auth_headers,
+    monkeypatch,
+):
+    game = create_game(title="Manual Game")
+    get_screenshots = Mock()
+    monkeypatch.setattr(
+        "app.api.v1.games.rawg_service.get_game_screenshots",
+        get_screenshots,
+    )
+
+    response = client.get(
+        f"/games/{game['id']}/screenshots",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
+    get_screenshots.assert_not_called()
+
+
+def test_user_cannot_get_screenshots_for_another_users_game(
+    client,
+    auth_headers,
+    second_auth_headers,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "app.services.game_service.get_game_details",
+        lambda rawg_id: rawg_details(rawg_id),
+    )
+    imported = client.post("/games/import/123", headers=auth_headers).json()
+    get_screenshots = Mock()
+    monkeypatch.setattr(
+        "app.api.v1.games.rawg_service.get_game_screenshots",
+        get_screenshots,
+    )
+
+    response = client.get(
+        f"/games/{imported['id']}/screenshots",
+        headers=second_auth_headers,
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Jogo não encontrado."
+    get_screenshots.assert_not_called()
+
+
+def test_get_game_screenshots_translates_rawg_provider_error(
+    client,
+    auth_headers,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "app.services.game_service.get_game_details",
+        lambda rawg_id: rawg_details(rawg_id),
+    )
+    imported = client.post("/games/import/123", headers=auth_headers).json()
+    monkeypatch.setattr(
+        "app.api.v1.games.rawg_service.get_game_screenshots",
+        Mock(side_effect=rawg_service.RawgProviderError(502, "RAWG indisponível.")),
+    )
+
+    response = client.get(
+        f"/games/{imported['id']}/screenshots",
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 502
+    assert response.json()["detail"] == "RAWG indisponível."
+
+
+def test_rawg_screenshots_request_parses_and_caches_results(monkeypatch):
+    monkeypatch.setattr(rawg_service, "_screenshot_cache", {})
+    monkeypatch.setattr(rawg_service.settings, "RAWG_API_KEY", "test-api-key")
+    response_mock = Mock()
+    response_mock.raise_for_status.return_value = None
+    response_mock.json.return_value = {
+        "results": [
+            {"image": "https://example.com/screenshot.jpg"},
+            {"image": None},
+            {},
+        ]
+    }
+    request = Mock(return_value=response_mock)
+    monkeypatch.setattr(rawg_service.requests, "get", request)
+
+    first_result = rawg_service.get_game_screenshots(123)
+    second_result = rawg_service.get_game_screenshots(123)
+
+    assert first_result == ["https://example.com/screenshot.jpg"]
+    assert second_result == first_result
+    request.assert_called_once_with(
+        "https://api.rawg.io/api/games/123/screenshots",
+        params={"key": "test-api-key", "page_size": 10},
+        timeout=10,
+    )
