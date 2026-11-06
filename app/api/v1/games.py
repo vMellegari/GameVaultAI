@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
@@ -124,12 +124,14 @@ def get_game_stats(db: Session = Depends(get_db), current_user: User = Depends(g
 )
 def get_recommendations(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    accept_language: str | None = Header(default=None, alias="Accept-Language"),
 ):
     try:
         return recommendation_service.generate_recommendations(
             db=db,
-            owner=current_user
+            owner=current_user,
+            language=accept_language or "en",
         )
     except recommendation_service.RecommendationProviderError as error:
         raise HTTPException(
@@ -202,9 +204,12 @@ def get_game_session_stats(
 def get_game_session_insights(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    accept_language: str | None = Header(default=None, alias="Accept-Language"),
 ):
     try:
-        return session_insight_service.analyze_session_notes(db, current_user)
+        return session_insight_service.analyze_session_notes(
+            db, current_user, language=accept_language or "en"
+        )
     except session_insight_service.SessionInsightProviderError as error:
         raise HTTPException(
             status_code=error.status_code,

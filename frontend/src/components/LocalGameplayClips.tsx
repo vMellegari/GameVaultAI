@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 import { useEffect, useState } from 'react'
 import {
   deleteLocalGameplayClip,
@@ -62,7 +63,7 @@ function LocalGameplayClips({ gameId, gameTitle, sessionId }: {
   }, [gameId, sessionId])
 
   async function removeClip(clip: LocalGameplayClip) {
-    if (!window.confirm('Excluir este clipe salvo neste navegador?')) {
+    if (!window.confirm(i18n.t('Excluir este clipe salvo neste navegador?'))) {
       return
     }
 
@@ -97,26 +98,28 @@ function LocalGameplayClips({ gameId, gameTitle, sessionId }: {
         <>
           <div className="local-gameplay-heading">
             <div>
-              <strong>Clipes de gameplay</strong>
-              <p>Salvos somente neste navegador e neste dispositivo.</p>
+              <strong>{i18n.t("Clipes de gameplay")}</strong>
+              <p>{i18n.t("Salvos somente neste navegador e neste dispositivo.")}</p>
             </div>
           </div>
-          {error && <p className="local-gameplay-error" role="alert">{error}</p>}
+          {error && <p className="local-gameplay-error" role="alert">{i18n.t(error)}</p>}
           <ul className="local-gameplay-list">
             {clips.map((clip) => (
               <li key={clip.id}>
                 <LocalClipPlayer clip={clip} />
                 <div className="local-gameplay-clip-meta">
                   <span>
-                    {new Date(clip.recordedAt).toLocaleString('pt-BR')} ·{' '}
+                    {new Date(clip.recordedAt).toLocaleString(i18n.language)} ·{' '}
                     {formatDuration(clip.durationMs)} · {formatFileSize(clip.blob.size)}
                   </span>
                   <div>
                     <button type="button" onClick={() => downloadClip(clip)}>
-                      Baixar
+
+                      {i18n.t("Baixar")}
                     </button>
                     <button type="button" onClick={() => void removeClip(clip)}>
-                      Excluir
+
+                      {i18n.t("Excluir")}
                     </button>
                   </div>
                 </div>
@@ -126,7 +129,7 @@ function LocalGameplayClips({ gameId, gameTitle, sessionId }: {
         </>
       )}
       {clips.length === 0 && error && (
-        <p className="local-gameplay-error" role="alert">{error}</p>
+        <p className="local-gameplay-error" role="alert">{i18n.t(error)}</p>
       )}
     </div>
   )

@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 import { useState, type FormEvent } from 'react'
 import { importGame, searchGames } from '../services/api'
 import './GameSearch.css'
@@ -75,9 +76,9 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
     <div className="search-page">
       <div className="search-header">
         <div>
-          <h2>Adicionar jogo</h2>
+          <h2>{i18n.t("Adicionar jogo")}</h2>
 
-          <p>Busque um jogo na RAWG para adicionar à sua biblioteca.</p>
+          <p>{i18n.t("Busque um jogo na RAWG para adicionar à sua biblioteca.")}</p>
         </div>
 
         <button className="close-button" onClick={onClose}>
@@ -90,23 +91,23 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Ex: The Witcher 3"
+          placeholder={i18n.t("Ex: The Witcher 3")}
         />
 
         <button type="submit" disabled={loading}>
-          {loading ? 'Buscando...' : 'Buscar'}
+          {loading ? i18n.t("Buscando...") : 'Buscar'}
         </button>
       </form>
 
-      {error && <p className="search-error">{error}</p>}
+      {error && <p className="search-error">{i18n.t(error)}</p>}
 
       {!loading && results.length === 0 && !error && (
         <div className="search-empty">
           <span>🔎</span>
 
-          <h3>Encontre seu próximo jogo</h3>
+          <h3>{i18n.t("Encontre seu próximo jogo")}</h3>
 
-          <p>Digite o nome de um jogo para começar.</p>
+          <p>{i18n.t("Digite o nome de um jogo para começar.")}</p>
         </div>
       )}
 
@@ -115,7 +116,7 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
           <article className="search-result" key={game.rawg_id}>
             <div className="search-result-cover">
               {game.cover_image ? (
-                <img src={game.cover_image} alt={`Capa de ${game.title}`} />
+                <img src={game.cover_image} alt={i18n.t('Capa de {{title}}', { title: game.title })} />
               ) : (
                 <span>🎮</span>
               )}
@@ -124,12 +125,13 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
             <div className="search-result-info">
               <h3>{game.title}</h3>
 
-              {game.released && <p>Lançamento: {game.released}</p>}
+              {game.released && <p>{i18n.t("Lançamento:")} {game.released}</p>}
             </div>
 
             <div className="search-result-actions">
               <label className="game-type-label">
-                Tipo
+
+                {i18n.t("Tipo")}
                 <select
                   value={gameTypes[game.rawg_id] ?? 'STANDARD'}
                   onChange={(event) =>
@@ -140,8 +142,8 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
                   }
                   disabled={importingId === game.rawg_id}
                 >
-                  <option value="STANDARD">Tradicional</option>
-                  <option value="ONGOING">Contínua</option>
+                  <option value="STANDARD">{i18n.t("Tradicional")}</option>
+                  <option value="ONGOING">{i18n.t("Contínua")}</option>
                 </select>
               </label>
               <button
@@ -149,7 +151,7 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
                 onClick={() => handleImport(game.rawg_id)}
                 disabled={importingId === game.rawg_id}
               >
-                {importingId === game.rawg_id ? 'Adicionando...' : 'Adicionar'}
+                {importingId === game.rawg_id ? i18n.t("Adicionando...") : i18n.t("Adicionar")}
               </button>
             </div>
           </article>

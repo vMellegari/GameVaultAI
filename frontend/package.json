@@ -7,13 +7,16 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "node --test tests/*.test.cjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "i18next": "^26.7.2",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-i18next": "^17.1.13"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

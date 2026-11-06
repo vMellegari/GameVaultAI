@@ -1,3 +1,5 @@
+import i18n from '../i18n'
+
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(
   /\/+$/,
   '',
@@ -8,6 +10,7 @@ function getAuthHeaders() {
 
   return {
     Authorization: `Bearer ${token}`,
+    'Accept-Language': i18n.language,
   }
 }
 

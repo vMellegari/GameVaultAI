@@ -1,243 +1,119 @@
 # GameVaultAI
 
-Aplicação full stack para organizar uma biblioteca pessoal de jogos, registrar
-sessões e acompanhar o progresso. O projeto integra dados da RAWG e recomendações
-com Google Gemini.
+GameVaultAI is a full-stack application for organizing a personal video game library and tracking gameplay. Users can search and import games from RAWG, manage collections and progress, record play sessions, and review statistics and activity history. Optional personalized recommendations and session-note summaries use the Google Gemini API.
 
-## Funcionalidades
+> BYOP eligibility has not been confirmed. GameVaultAI consumes an external LLM API for optional product features; this integration is disclosed below and has not been removed or hidden.
 
-- Cadastro e autenticação de usuários com JWT.
-- Biblioteca pessoal com busca, filtros, favoritos e paginação.
-- Pesquisa e importação de jogos da RAWG.
-- Tipos de experiência `STANDARD` e `ONGOING`, com regras de status para jogos contínuos.
-- Detalhes, edição, avaliação, horas jogadas e data de conclusão.
-- Histórico de sessões, estatísticas e anexos de imagens.
-- Gravação de tela associada a uma sessão, com reprodução e download local.
-- Recomendações de jogos com Gemini, enriquecidas com informações da RAWG.
+## Features
 
-## Stack e arquitetura
+- Account registration and JWT authentication.
+- Personal game library with search, filters, favorites, and pagination.
+- Game search and import through RAWG.
+- Game status, platform, rating, playtime, genres, and completion tracking.
+- Gameplay sessions, history, and statistics.
+- Session screenshots stored locally or in optional Supabase Storage.
+- Optional local gameplay recording stored in the browser's IndexedDB.
+- Optional Gemini-powered game recommendations and session-note analysis.
 
-- **Frontend:** React, TypeScript e Vite.
-- **Backend:** FastAPI, SQLAlchemy e Pydantic.
-- **Banco de dados:** PostgreSQL, com migrações pelo Alembic.
-- **Integrações:** RAWG e Google Gemini (`google-genai`).
-- **Infraestrutura local:** Docker Compose.
-- **Qualidade:** pytest, ESLint, build do frontend e GitHub Actions.
+## AI Integration
 
-Na versão publicada, a Vercel hospeda o frontend, o Render executa a API em
-container e o Supabase fornece o PostgreSQL. O Supabase Storage pode armazenar
-os prints das sessões quando configurado. As gravações de gameplay permanecem
-no navegador do usuário.
+Gemini provides two supplementary features: personalized game recommendations based on a user's library, and summaries of notes written for recent gameplay sessions. The backend sends requests to Google's external Gemini API. GameVaultAI does not develop, train, fine-tune, host, or serve AI models, and it does not operate model inference infrastructure.
 
-```mermaid
-flowchart LR
-    Browser[Navegador] --> Vercel[Frontend · Vercel]
-    Vercel --> Render[API FastAPI · Render]
-    Render --> SupabaseDB[(PostgreSQL · Supabase)]
-    Render --> RAWG[API RAWG]
-    Render --> Gemini[API Gemini]
-    Render -. prints, se configurado .-> Storage[Supabase Storage]
-    Browser --> Local[(Clipes · IndexedDB local)]
+For recommendations, the prompt contains each library game's title, platform, status, favorite flag, personal rating, hours played, genres, and Metacritic score. For session analysis, it contains the game title, session timestamp, duration, and the user's note. The analysis includes at most 30 recent sessions, and each note is truncated to 700 characters. These fields can describe a person's interests and play habits; free-text notes may contain identifying information. Usernames and email addresses are not included in either prompt by the current implementation.
+
+The application does not attach session images or gameplay videos to Gemini. Session images are sent to the GameVaultAI backend and stored on local disk or optional Supabase Storage. Gameplay recordings stay in the browser's IndexedDB and are not uploaded to the backend. The code does not persist Gemini prompts or responses; data handling and retention by Google are governed by the provider's terms and settings.
+
+Library management, RAWG search/import, sessions, statistics, and local recording do not call Gemini and remain available when its API key is absent or the service is unavailable. Only recommendations and session-note analysis depend on Gemini. RAWG search/import is a separate external integration and still requires its own API key.
+
+### BYOP project description
+
+> GameVaultAI is a full-stack personal game library and gameplay tracking application built with React, TypeScript, Python, FastAPI, and PostgreSQL. It helps users organize game collections, track play sessions, review statistics, and discover titles through RAWG. Optional recommendations and session-note summaries use the external Google Gemini API; the project does not develop or host AI models.
+
+## Data and privacy
+
+PostgreSQL stores account usernames, email addresses, password hashes, game-library records, gameplay-session records, and image metadata. Passwords are hashed before storage. Session images themselves are stored on local disk by default or in a configured private Supabase Storage bucket. The browser stores the JWT in `localStorage` and gameplay video blobs in IndexedDB. Clips can be downloaded by the user and are removed if deleted in the app or browser data is cleared.
+
+The app supports multiple accounts and can process personal data entered by users, even though the project owner reports being its only user so far. Tests use synthetic accounts and fixture data, with mocked RAWG and Gemini calls. A deployment may handle personal data if other people register or enter identifying details in session notes.
+
+## Technology
+
+- **Frontend:** React, TypeScript, Vite
+- **Backend:** Python, FastAPI, SQLAlchemy, Pydantic
+- **Database and migrations:** PostgreSQL, Alembic
+- **External APIs:** RAWG, Google Gemini (optional product features)
+- **Storage:** local media directory or optional Supabase Storage
+- **Deployment:** Vercel (frontend), Render (backend), Supabase (PostgreSQL / optional storage)
+- **Quality:** pytest, ESLint, TypeScript build, GitHub Actions
+
+## Requirements
+
+- Python 3.14+
+- Node.js 24 and npm
+- Docker Desktop with Docker Compose (for the containerized setup)
+- RAWG API key for game search/import
+- Gemini API key only for AI recommendations and session-note analysis
+
+## Local setup
+
+Copy the environment template and set a unique `SECRET_KEY`. API keys are optional unless you use their corresponding integrations.
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item frontend/.env.example frontend/.env
 ```
 
-## Mídia e privacidade
-
-- **Prints das sessões:** enviados à API e armazenados no disco ou no Supabase
-  Storage, conforme `STORAGE_BACKEND`.
-- **Clipes de gameplay:** capturados após o usuário escolher uma tela ou janela.
-  São guardados no IndexedDB deste navegador e dispositivo, associados ao jogo e
-  à sessão. Não são enviados ao backend, à nuvem ou ao Gemini. Use **Baixar**
-  para exportar uma cópia `.webm`.
-- A captura exige um navegador compatível e contexto seguro, como HTTPS ou
-  `localhost`. O navegador pede permissão para compartilhar a tela; o áudio
-  depende do navegador e da opção escolhida.
-- Os clipes locais podem ser removidos ao limpar os dados do site ou se o
-  navegador precisar liberar espaço. Baixe os vídeos que quiser preservar. O
-  limite atual é de 15 minutos por clipe.
-- A análise de vídeos com IA ainda não está implementada. As recomendações atuais
-  dependem da disponibilidade e da cota da API Gemini.
-
-## Requisitos
-
-- Python 3.14.5
-- Node.js 24 e npm
-- Docker Desktop com Docker Compose
-- Uma chave da API RAWG para busca, importação e atualização de dados
-- Uma chave da API Gemini para recomendações
-
-## Configuração
-
-Inicie o PostgreSQL:
+Start PostgreSQL and install backend dependencies:
 
 ```powershell
 docker compose up -d db
-```
-
-Crie o arquivo local de configuração e preencha as chaves das APIs:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Gere uma chave JWT longa e aleatória:
-
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
-
-Coloque o valor gerado em `SECRET_KEY` no `.env`. `RAWG_API_KEY` e
-`GEMINI_API_KEY` habilitam as integrações correspondentes.
-`GEMINI_MODEL` seleciona o modelo usado nas recomendações e análises de sessões;
-se omitido, o padrão é `gemini-3.6-flash`. `GEMINI_FALLBACK_MODEL` configura o
-modelo reserva (`gemini-3.5-flash-lite` por padrão), usado quando o principal
-estiver indisponível ou o serviço retornar um erro temporário. Erros de cota
-(`429`) não acionam o fallback para evitar chamadas extras sem benefício.
-
-`GAMEVAULT_MEDIA_DIR` define onde os anexos de imagem das sessões são salvos.
-O padrão é `data/media`; mantenha essa pasta em armazenamento persistente e
-inclua-a nos backups do projeto. Cada sessão aceita até 5 imagens JPEG, PNG ou
-WebP, com até 5 MB por imagem.
-
-Para usar o Supabase Storage, defina `STORAGE_BACKEND=supabase` e configure
-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_STORAGE_BUCKET` no
-backend. Crie previamente um bucket privado com o nome configurado. A chave de
-serviço é secreta e nunca deve ser configurada no frontend. Com
-`STORAGE_BACKEND=local` (padrão), os anexos continuam sendo salvos no disco.
-
-`CORS_ORIGINS` aceita uma lista de origens separadas por vírgula. Para o
-frontend, copie `frontend/.env.example` para `frontend/.env` e ajuste
-`VITE_API_URL` se a API não estiver em `http://localhost:8000`.
-
-## Executar a aplicação completa com Docker
-
-Copie o exemplo de ambiente. Para um ambiente publicado, configure `SECRET_KEY`
-e `POSTGRES_PASSWORD` com valores fortes. Use uma senha de banco formada por
-caracteres seguros para URL e mantenha a mesma senha em `DATABASE_URL` ao
-executar a API fora do Docker. Os valores do arquivo de exemplo são apenas para
-desenvolvimento local.
-
-```powershell
-Copy-Item .env.example .env
-docker compose up --build -d
-```
-
-O Compose inicia o PostgreSQL, aplica as migrações do Alembic antes de iniciar
-a API e serve o frontend pelo Nginx. A aplicação fica em
-`http://localhost:8080`; a API e sua documentação ficam em `http://localhost:8000`
-e `http://localhost:8000/docs`. Os dados do banco e as imagens das sessões
-ficam em volumes Docker persistentes. `docker compose down` preserva esses
-volumes.
-
-Para publicar o backend usando o Dockerfile, configure `DATABASE_URL`,
-`SECRET_KEY`, `CORS_ORIGINS` e as credenciais necessárias no painel do serviço.
-O container aplica as migrações do Alembic ao iniciar e usa a porta fornecida
-pela plataforma. Para construir o frontend, defina `VITE_API_URL` como o
-endereço público da API antes do build. Não use as credenciais de exemplo em
-ambientes publicados.
-
-## Arquitetura de produção
-
-Os serviços publicados têm responsabilidades separadas:
-
-1. **Vercel:** compila e hospeda o frontend. Configure `VITE_API_URL` com a URL
-   pública do backend; essa variável é incorporada durante o build.
-2. **Render:** executa a API a partir do `Dockerfile`. Configure no serviço as
-   variáveis do backend, incluindo `DATABASE_URL`, `SECRET_KEY` e
-   `CORS_ORIGINS`. A origem permitida deve incluir a URL pública do frontend.
-3. **Supabase Database:** fornece o PostgreSQL. Configure sua URL em
-   `DATABASE_URL`; o container aplica as migrações do Alembic ao iniciar.
-4. **Supabase Storage (opcional):** armazena os prints enviados pelos usuários.
-   Configure um bucket privado, `STORAGE_BACKEND=supabase` e as variáveis
-   `SUPABASE_*`. A chave `SUPABASE_SERVICE_ROLE_KEY` deve existir somente no
-   ambiente do backend.
-
-As chaves RAWG e Gemini também ficam no backend. Indisponibilidade ou limite de
-cota nessas APIs pode afetar busca/importação ou recursos de IA, sem afetar os
-clipes locais.
-
-Alterações no frontend exigem um novo deploy na Vercel. Alterações no backend
-exigem um novo deploy no Render. Se `VITE_API_URL` mudar, o frontend precisa ser
-reconstruído para receber o novo endereço.
-
-## Integração contínua
-
-O workflow do GitHub Actions executa `pytest`, ESLint e o build do frontend em
-cada push e pull request. Os testes usam SQLite e não precisam de chaves RAWG
-ou Gemini nem de um serviço PostgreSQL.
-
-Crie um ambiente virtual e instale as dependências:
-
-```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-```
-
-## Banco de dados
-
-O PostgreSQL de desenvolvimento é configurado no `.env.example`. A estrutura é
-gerenciada pelo Alembic; aplique as migrações antes de iniciar a API:
-
-```powershell
 alembic upgrade head
 ```
 
-Ao atualizar uma instalação existente, essa migração adiciona o tipo do jogo e
-classifica os registros atuais como `STANDARD`. Não é necessário apagar ou
-recriar o banco de dados.
-
-## Tipos de jogo
-
-`STANDARD` representa jogos com uma conclusão possível. `ONGOING` representa
-experiências contínuas, como MMOs e jogos de serviço; esses jogos não podem ser
-marcados como `COMPLETED`. Jogos cadastrados e importados da RAWG começam como
-`STANDARD`, e o tipo pode ser alterado nos detalhes do jogo.
-
-## Executar a API
+Install frontend dependencies and start the API and frontend from the repository root:
 
 ```powershell
-uvicorn app.main:app --reload
-```
-
-Para iniciar a API e o frontend ao mesmo tempo, a partir da raiz do projeto:
-
-```powershell
+npm --prefix frontend ci
 npm install
 npm run dev
 ```
 
-A documentação interativa fica disponível em
-`http://127.0.0.1:8000/docs`.
+The frontend and API are available at `http://localhost:5173` and `http://localhost:8000`; API documentation is at `http://localhost:8000/docs`.
 
-## Testes
+Alternatively, run the full stack with Docker Compose:
+
+```powershell
+docker compose up --build -d
+```
+
+The containerized frontend is available at `http://localhost:8080`. Configure production credentials in the deployment provider's secret settings. Never use the example database password or a placeholder JWT secret in a public deployment. `SUPABASE_SERVICE_ROLE_KEY` belongs only in the backend environment.
+
+See `.env.example`, `frontend/.env.example`, and [frontend/README.md](frontend/README.md) for configuration details. Set `STORAGE_BACKEND=supabase` and configure a private bucket to store session screenshots in Supabase; local disk is the default. `GEMINI_MODEL` and `GEMINI_FALLBACK_MODEL` select the primary and fallback models.
+
+## Testing and CI
+
+Backend tests use a separate SQLite database and mocks; they do not call RAWG or Gemini. The GitHub Actions workflow runs pytest, ESLint, and the frontend TypeScript/Vite build.
 
 ```powershell
 pytest -q
+npm --prefix frontend run lint
+npm --prefix frontend run build
 ```
 
-Os testes usam um banco SQLite separado e mocks para a RAWG e o Gemini; não
-fazem requisições reais às APIs externas.
+## Gameplay media
 
-## Sessões de jogo, prints e clipes
+Session screenshots are uploaded to the authenticated backend, which stores them on disk or in Supabase Storage. Each session accepts up to five JPEG, PNG, or WebP images, up to 5 MB each. Screen recordings use browser capture APIs and stay in local IndexedDB; recording requires a supported browser and a secure context such as HTTPS or localhost. The current recording limit is 15 minutes per clip. Video analysis with AI is not implemented.
 
-As sessões são associadas ao jogo e atualizam o total de horas jogadas. O
-PostgreSQL armazena os metadados dos anexos; os arquivos podem ficar no disco
-local ou em um bucket privado do Supabase Storage. As rotas de leitura, envio e
-exclusão de imagens exigem autenticação JWT.
+## License
 
-Você pode registrar uma sessão manualmente, anexar prints e observações, ou usar
-**Iniciar sessão com gravação**. Nesse fluxo, a captura começa primeiro; ao
-pará-la, informe um comentário opcional e salve a sessão com o clipe. O tempo
-gravado preenche a duração da sessão. Os controles da sessão permitem
-reproduzir, baixar ou excluir clipes locais. Os comentários podem apoiar uma
-análise futura; a análise de vídeos com IA ainda não está implementada.
+GameVaultAI's original code and project documentation are licensed under the MIT License; see [LICENSE](LICENSE). Third-party dependencies, assets, and services remain subject to their own terms and licenses.
 
-## Principais endpoints
+## Roadmap
 
-- `POST /users`: criar usuário
-- `POST /login`: obter token JWT
-- `GET /games`: listar e filtrar jogos
-- `POST /games`: cadastrar jogo
-- `GET /games/search`: pesquisar na RAWG
-- `POST /games/import/{rawg_id}`: importar jogo da RAWG
-- `GET /games/stats`: consultar estatísticas
+See [ROADMAP.md](ROADMAP.md) for planned engineering work and estimates.
+
+## Documentação em português
+
+Leia [README.pt-BR.md](README.pt-BR.md) para a versão em português brasileiro.

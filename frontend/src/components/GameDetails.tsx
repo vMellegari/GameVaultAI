@@ -1,3 +1,4 @@
+import i18n, { formatDate, formatNumber } from '../i18n'
 import { useEffect, useState } from 'react'
 import {
   deleteGame,
@@ -306,7 +307,7 @@ function GameDetails({
   if (loading) {
     return (
       <div className="details-page">
-        <p>Carregando detalhes...</p>
+        <p>{i18n.t("Carregando detalhes...")}</p>
       </div>
     )
   }
@@ -315,11 +316,12 @@ function GameDetails({
     return (
       <div className="details-page">
         <button className="close-button" onClick={handleClose}>
-          ← Voltar
+
+          {i18n.t("← Voltar")}
         </button>
 
         <div className="library-message error">
-          <p>{error}</p>
+          <p>{i18n.t(error)}</p>
         </div>
       </div>
     )
@@ -333,18 +335,19 @@ function GameDetails({
     <div className="details-page">
       <div className="details-header">
         <button className="close-button" onClick={onClose}>
-          ← Voltar
+
+          {i18n.t("← Voltar")}
         </button>
       </div>
 
-      {error && <p className="details-error">{error}</p>}
+      {error && <p className="details-error">{i18n.t(error)}</p>}
 
       <div className="game-details-layout">
         <section className="details-card">
           <div className="details-media">
             <div className="details-cover">
               {game.cover_image ? (
-                <img src={game.cover_image} alt={`Capa de ${game.title}`} />
+                <img src={game.cover_image} alt={i18n.t('Capa de {{title}}', { title: game.title })} />
               ) : (
                 <span>🎮</span>
               )}
@@ -358,21 +361,23 @@ function GameDetails({
                   setGalleryOpen(true)
                 }}
               >
-                ▧ Ver galeria ({galleryImages.length})
+
+                {i18n.t("▧ Ver galeria (")}{galleryImages.length})
               </button>
             )}
             {screenshotResult?.gameId === gameId && galleryImages.length < 2 && (
               <div className="details-gallery-feedback" role="status">
                 <span>
                   {screenshotResult.error ||
-                    'A RAWG não retornou screenshots adicionais para este jogo.'}
+                    i18n.t("A RAWG não retornou screenshots adicionais para este jogo.")}
                 </span>
                 {screenshotResult.error && (
                   <button
                     type="button"
                     onClick={() => setScreenshotRetry((attempt) => attempt + 1)}
                   >
-                    Tentar novamente
+
+                    {i18n.t("Tentar novamente")}
                   </button>
                 )}
               </div>
@@ -394,15 +399,15 @@ function GameDetails({
                   aria-pressed={game.favorite}
                   aria-label={
                     game.favorite
-                      ? 'Remover jogo dos favoritos'
-                      : 'Adicionar jogo aos favoritos'
+                      ? i18n.t("Remover jogo dos favoritos")
+                      : i18n.t("Adicionar jogo aos favoritos")
                   }
                 >
                   {updatingFavorite
-                    ? 'Salvando...'
+                    ? i18n.t("Salvando...")
                     : game.favorite
-                      ? '★ Favorito'
-                      : '☆ Favoritar'}
+                      ? i18n.t("★ Favorito")
+                      : i18n.t("☆ Favoritar")}
                 </button>
               )}
             </div>
@@ -416,12 +421,13 @@ function GameDetails({
                     setError('')
                   }}
                 >
-                  <option value="BACKLOG">Backlog</option>
+                  <option value="BACKLOG">{i18n.t("Backlog")}</option>
 
-                  <option value="PLAYING">Jogando</option>
+                  <option value="PLAYING">{i18n.t("Jogando")}</option>
 
                   <option value="COMPLETED" disabled={gameType === 'ONGOING'}>
-                    Concluído
+
+                    {i18n.t("Concluído")}
                   </option>
                 </select>
               ) : (
@@ -431,7 +437,7 @@ function GameDetails({
 
             <div className="details-grid">
               <div>
-                <strong>Tipo de experiência</strong>
+                <strong>{i18n.t("Tipo de experiência")}</strong>
 
                 {editing ? (
                   <select
@@ -441,20 +447,21 @@ function GameDetails({
                       setError('')
                     }}
                   >
-                    <option value="STANDARD">Tradicional</option>
+                    <option value="STANDARD">{i18n.t("Tradicional")}</option>
                     <option value="ONGOING" disabled={status === 'COMPLETED'}>
-                      Contínua
+
+                      {i18n.t("Contínua")}
                     </option>
                   </select>
                 ) : (
                   <span>
-                    {game.game_type === 'ONGOING' ? 'Contínua' : 'Tradicional'}
+                    {game.game_type === 'ONGOING' ? i18n.t("Contínua") : i18n.t("Tradicional")}
                   </span>
                 )}
               </div>
 
               <div>
-                <strong>Plataforma</strong>
+                <strong>{i18n.t("Plataforma")}</strong>
 
                 {editing ? (
                   <input
@@ -468,7 +475,7 @@ function GameDetails({
               </div>
 
               <div>
-                <strong>Nota pessoal</strong>
+                <strong>{i18n.t("Nota pessoal")}</strong>
 
                 {editing ? (
                   <input
@@ -478,19 +485,19 @@ function GameDetails({
                     step="0.1"
                     value={rating}
                     onChange={(event) => setRating(event.target.value)}
-                    placeholder="0 a 10"
+                    placeholder={i18n.t("0 a 10")}
                   />
                 ) : (
                   <span>
                     {game.personal_rating !== null
-                      ? `★ ${game.personal_rating}/10`
-                      : 'Não avaliado'}
+                      ? `★ ${formatNumber(game.personal_rating)}/10`
+                      : i18n.t("Não avaliado")}
                   </span>
                 )}
               </div>
 
               <div>
-                <strong>Horas jogadas</strong>
+                <strong>{i18n.t("Horas jogadas")}</strong>
 
                 {editing ? (
                   <input
@@ -501,57 +508,57 @@ function GameDetails({
                     onChange={(event) => setHoursPlayed(event.target.value)}
                   />
                 ) : (
-                  <span>{game.hours_played}h</span>
+                  <span>{formatNumber(game.hours_played, { maximumFractionDigits: 1 })} {i18n.t("h")}</span>
                 )}
               </div>
 
               <div>
-                <strong>Metacritic</strong>
+                <strong>{i18n.t("Metacritic")}</strong>
 
                 <span>
                   {game.metacritic_score !== null
-                    ? game.metacritic_score
-                    : 'Não disponível'}
+                    ? formatNumber(game.metacritic_score)
+                    : i18n.t("Não disponível")}
                 </span>
               </div>
 
               <div>
-                <strong>Lançamento</strong>
+                <strong>{i18n.t("Lançamento")}</strong>
 
-                <span>{game.release_date || 'Não disponível'}</span>
+                <span>{game.release_date ? formatDate(game.release_date) : i18n.t("Não disponível")}</span>
               </div>
 
               <div>
-                <strong>Data de conclusão</strong>
+                <strong>{i18n.t("Data de conclusão")}</strong>
                 <span>
                   {game.game_type === 'ONGOING'
-                    ? 'Não se aplica'
+                    ? i18n.t("Não se aplica")
                     : game.completed_at
-                    ? new Date(game.completed_at).toLocaleDateString('pt-BR')
-                    : 'Não concluído'}
+                    ? new Date(game.completed_at).toLocaleDateString(i18n.language)
+                    : i18n.t("Não concluído")}
                 </span>
               </div>
             </div>
 
             {game.genres && (
               <div className="details-section">
-                <strong>Gêneros</strong>
+                <strong>{i18n.t("Gêneros")}</strong>
                 <p>{game.genres}</p>
               </div>
             )}
 
             <div className="details-section">
-              <strong>Observações</strong>
+              <strong>{i18n.t("Observações")}</strong>
 
               {editing ? (
                 <textarea
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
-                  placeholder="Adicione suas observações..."
+                  placeholder={i18n.t("Adicione suas observações...")}
                   rows={4}
                 />
               ) : (
-                <p>{game.notes || 'Nenhuma observação adicionada.'}</p>
+                <p>{game.notes || i18n.t("Nenhuma observação adicionada.")}</p>
               )}
             </div>
 
@@ -562,7 +569,8 @@ function GameDetails({
                   checked={favorite}
                   onChange={(event) => setFavorite(event.target.checked)}
                 />
-                Favorito
+
+                {i18n.t("Favorito")}
               </label>
             )}
 
@@ -574,7 +582,7 @@ function GameDetails({
                     onClick={handleSave}
                     disabled={saving}
                   >
-                    {saving ? 'Salvando...' : 'Salvar alterações'}
+                    {saving ? i18n.t("Salvando...") : i18n.t("Salvar alterações")}
                   </button>
 
                   <button
@@ -582,7 +590,8 @@ function GameDetails({
                     onClick={handleCancel}
                     disabled={saving}
                   >
-                    Cancelar
+
+                    {i18n.t("Cancelar")}
                   </button>
                 </>
               ) : (
@@ -591,14 +600,16 @@ function GameDetails({
                     className="details-edit-button"
                     onClick={() => setEditing(true)}
                   >
-                    ✎ Editar jogo
+
+                    {i18n.t("✎ Editar jogo")}
                   </button>
 
                   <button
                     className="details-delete-button"
                     onClick={() => setShowDeleteConfirmation(true)}
                   >
-                    🗑 Excluir jogo
+
+                    {i18n.t("🗑 Excluir jogo")}
                   </button>
                 </>
               )}
@@ -606,9 +617,9 @@ function GameDetails({
             {showDeleteConfirmation && (
               <div className="delete-confirmation">
                 <div>
-                  <strong>Excluir este jogo?</strong>
+                  <strong>{i18n.t("Excluir este jogo?")}</strong>
 
-                  <p>Essa ação não pode ser desfeita.</p>
+                  <p>{i18n.t("Essa ação não pode ser desfeita.")}</p>
                 </div>
 
                 <div className="delete-confirmation-actions">
@@ -617,7 +628,8 @@ function GameDetails({
                     onClick={() => setShowDeleteConfirmation(false)}
                     disabled={deleting}
                   >
-                    Cancelar
+
+                    {i18n.t("Cancelar")}
                   </button>
 
                   <button
@@ -625,7 +637,7 @@ function GameDetails({
                     onClick={handleDelete}
                     disabled={deleting}
                   >
-                    {deleting ? 'Excluindo...' : 'Sim, excluir'}
+                    {deleting ? i18n.t("Excluindo...") : i18n.t("Sim, excluir")}
                   </button>
                 </div>
               </div>
@@ -666,30 +678,36 @@ function GameDetails({
             aria-labelledby="details-gallery-title"
           >
             <header className="details-gallery-header">
-              <h2 id="details-gallery-title">Imagens de {game.title}</h2>
+              <h2 id="details-gallery-title">{i18n.t("Imagens de")} {game.title}</h2>
               <button
                 type="button"
                 onClick={() => setGalleryOpen(false)}
-                aria-label="Fechar galeria"
+                aria-label={i18n.t("Fechar galeria")}
               >
-                ×
+
+                {i18n.t("×")}
               </button>
             </header>
             <img
               className="details-gallery-image"
               src={galleryImages[galleryIndex]}
-              alt={`${game.title} — imagem ${galleryIndex + 1}`}
+              alt={i18n.t('{{title}} — imagem {{number}}', {
+                title: game.title,
+                number: formatNumber(galleryIndex + 1),
+              })}
             />
             {galleryImages.length > 1 && (
               <div className="details-gallery-controls">
-                <button type="button" onClick={showPreviousGalleryImage} aria-label="Imagem anterior">
-                  ← Anterior
+                <button type="button" onClick={showPreviousGalleryImage} aria-label={i18n.t("Imagem anterior")}>
+
+                  {i18n.t("← Anterior")}
                 </button>
                 <span>
-                  {galleryIndex + 1} / {galleryImages.length} · troca automática
+                  {galleryIndex + 1} / {galleryImages.length}  {i18n.t("· troca automática")}
                 </span>
-                <button type="button" onClick={showNextGalleryImage} aria-label="Próxima imagem">
-                  Próxima →
+                <button type="button" onClick={showNextGalleryImage} aria-label={i18n.t("Próxima imagem")}>
+
+                  {i18n.t("Próxima →")}
                 </button>
               </div>
             )}

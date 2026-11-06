@@ -1,6 +1,8 @@
+import i18n from '../i18n'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { login, register } from '../services/api'
+import LanguageSwitcher from './LanguageSwitcher'
 import './Login.css'
 
 interface LoginProps {
@@ -47,62 +49,63 @@ function Login({ onLogin }: LoginProps) {
       <div className="login-card">
         <div className="login-logo">🎮</div>
 
-        <h1>GameVault AI</h1>
+        <h1>{i18n.t("GameVault AI")}</h1>
 
         <p>
           {isRegistering
-            ? 'Crie sua conta para começar sua biblioteca.'
-            : 'Entre na sua conta para acessar sua biblioteca.'}
+            ? i18n.t("Crie sua conta para começar sua biblioteca.")
+            : i18n.t("Entre na sua conta para acessar sua biblioteca.")}
         </p>
 
         <form onSubmit={handleSubmit}>
           <label>
-            Usuário
+
+            {i18n.t("Usuário")}
             <input
               type="text"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              placeholder="Digite seu usuário"
-              required
+              placeholder={i18n.t("Digite seu usuário")}              required
             />
           </label>
 
           {isRegistering && (
             <label>
-              E-mail
+
+              {i18n.t("E-mail")}
               <input
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="voce@exemplo.com"
-                autoComplete="email"
+                placeholder={i18n.t("voce@exemplo.com")}                autoComplete="email"
                 required
               />
             </label>
           )}
 
           <label>
-            Senha
+
+            {i18n.t("Senha")}
             <input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder={isRegistering ? 'Crie uma senha' : 'Digite sua senha'}
+              placeholder={isRegistering ? i18n.t("Crie uma senha") : i18n.t("Digite sua senha")}
               autoComplete={isRegistering ? 'new-password' : 'current-password'}
               required
             />
           </label>
 
-          {error && <p className="login-error">{error}</p>}
+          {error && <p className="login-error">{i18n.t(error)}</p>}
 
           <button type="submit" className="login-button" disabled={loading}>
             {loading
               ? isRegistering
-                ? 'Criando conta...'
-                : 'Entrando...'
+                ? i18n.t("Criando conta...")
+                : i18n.t("Entrando...")
               : isRegistering
-                ? 'Criar conta'
-                : 'Entrar'}
+                ? i18n.t("Criar conta")
+                : i18n.t("Entrar")}
           </button>
         </form>
 
@@ -116,9 +119,11 @@ function Login({ onLogin }: LoginProps) {
           disabled={loading}
         >
           {isRegistering
-            ? 'Já tem uma conta? Entrar'
-            : 'Ainda não tem uma conta? Cadastre-se'}
+            ? i18n.t("Já tem uma conta? Entrar")
+            : i18n.t("Ainda não tem uma conta? Cadastre-se")}
         </button>
+
+        <div className="login-language"><LanguageSwitcher /></div>
       </div>
     </main>
   )

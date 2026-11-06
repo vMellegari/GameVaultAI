@@ -102,7 +102,7 @@ def enrich_recommendations_with_rawg(
     return recommendations
 
 
-def generate_recommendations(db: Session, owner: User):
+def generate_recommendations(db: Session, owner: User, language: str = "en"):
     """Gera recomendações de jogos utilizando o Gemini."""
 
     games = get_recommendation_context(
@@ -125,7 +125,9 @@ def generate_recommendations(db: Session, owner: User):
         http_options={"timeout": 45000},
     )
 
-    prompt = f"""
+    is_portuguese = language.lower().startswith("pt")
+    prompt_instructions = (
+        """
 Você é um especialista em jogos eletrônicos.
 
 Analise a biblioteca de jogos abaixo e recomende 5 jogos
@@ -147,8 +149,28 @@ Para cada recomendação, informe:
 - reason: explicação breve de por que o jogo combina com o perfil.
 
 Retorne apenas os dados solicitados.
+"""
+        if is_portuguese
+        else """
+You are an expert in video games.
 
-Biblioteca do usuário:
+Review the game library below and recommend 5 games that may match this user's interests.
+Focus on favorites, personal ratings, genres, completed games, games currently being played,
+and Metacritic scores when available. Do not recommend games already in the library.
+
+For each recommendation, provide:
+- title: game title;
+- genres: a list of genres;
+- reason: a brief explanation of why it suits the user's profile.
+
+Return only the requested data. Write all user-facing recommendation text in English.
+"""
+    )
+    library_label = "Biblioteca do usuário:" if is_portuguese else "User's game library:"
+    prompt = f"""
+{prompt_instructions}
+
+{library_label}
 {games}
 """
 

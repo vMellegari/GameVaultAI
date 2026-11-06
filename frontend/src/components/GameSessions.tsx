@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   createGameSession,
@@ -94,7 +95,7 @@ function SessionImagePreview({
           <img src={imageUrl} alt={image.original_filename} loading="lazy" />
         </a>
       ) : (
-        <span className="game-session-image-loading">Carregando imagem...</span>
+        <span className="game-session-image-loading">{i18n.t("Carregando imagem...")}</span>
       )}
       <figcaption>
         <span title={image.original_filename}>{image.original_filename}</span>
@@ -102,9 +103,10 @@ function SessionImagePreview({
           type="button"
           onClick={() => onDelete(image)}
           disabled={disabled}
-          aria-label={`Excluir ${image.original_filename}`}
+          aria-label={i18n.t('Excluir {{name}}', { name: image.original_filename })}
         >
-          Excluir
+
+          {i18n.t("Excluir")}
         </button>
       </figcaption>
     </figure>
@@ -267,7 +269,7 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
 
   async function handleDelete(session: GameSession) {
     const confirmed = window.confirm(
-      'Excluir esta sessão? As horas registradas serão removidas do total do jogo.',
+      i18n.t('Excluir esta sessão? As horas registradas serão removidas do total do jogo.'),
     )
     if (!confirmed) {
       return
@@ -344,7 +346,7 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
   }
 
   async function handleDeleteImage(sessionId: number, image: GameSessionImage) {
-    if (!window.confirm(`Excluir a imagem “${image.original_filename}”?`)) {
+    if (!window.confirm(i18n.t('Excluir a imagem “{{name}}”?', { name: image.original_filename }))) {
       return
     }
 
@@ -377,24 +379,25 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
     <section className="game-sessions">
       <div className="game-sessions-header">
         <div>
-          <h3>Histórico de sessões</h3>
-          <p>Registre suas partidas e acompanhe o tempo jogado.</p>
+          <h3>{i18n.t("Histórico de sessões")}</h3>
+          <p>{i18n.t("Registre suas partidas e acompanhe o tempo jogado.")}</p>
         </div>
         <span>
-          {sessions.length} {sessions.length === 1 ? 'sessão' : 'sessões'}
+          {sessions.length} {sessions.length === 1 ? i18n.t("sessão") : i18n.t("sessões")}
         </span>
       </div>
 
-      {error && <p className="game-sessions-error">{error}</p>}
+      {error && <p className="game-sessions-error">{i18n.t(error)}</p>}
 
       <form className="game-session-form" onSubmit={handleSubmit}>
         <div className="game-session-mode-intro">
-          <strong>Registrar manualmente</strong>
-          <p>Informe duração, horário e observações. Depois, você pode anexar prints à sessão.</p>
+          <strong>{i18n.t("Registrar manualmente")}</strong>
+          <p>{i18n.t("Informe duração, horário e observações. Depois, você pode anexar prints à sessão.")}</p>
         </div>
         <div className="game-session-fields">
           <label>
-            Duração (minutos)
+
+            {i18n.t("Duração (minutos)")}
             <input
               type="number"
               min="1"
@@ -407,7 +410,8 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
           </label>
 
           <label>
-            Data e horário
+
+            {i18n.t("Data e horário")}
             <input
               type="datetime-local"
               value={playedAt}
@@ -418,14 +422,14 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
         </div>
 
         <label>
-          Observações (opcional)
+
+          {i18n.t("Observações (opcional)")}
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             maxLength={2000}
             rows={3}
-            placeholder="Como foi essa sessão?"
-          />
+            placeholder={i18n.t("Como foi essa sessão?")}          />
         </label>
 
         <div className="game-session-form-actions">
@@ -434,11 +438,11 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
             type="submit"
             disabled={busy || recordingFlowActive}
           >
-            {busy ? 'Salvando...' : 'Registrar sessão'}
+            {busy ? i18n.t("Salvando...") : i18n.t("Registrar sessão")}
           </button>
         </div>
 
-        <div className="game-session-mode-divider"><span>ou grave uma sessão</span></div>
+        <div className="game-session-mode-divider"><span>{i18n.t("ou grave uma sessão")}</span></div>
         <GameplaySessionRecorder
           gameTitle={gameTitle}
           onSave={handleSaveRecordedSession}
@@ -449,9 +453,9 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
 
       <div className="game-session-history">
         {loading ? (
-          <p>Carregando sessões...</p>
+          <p>{i18n.t("Carregando sessões...")}</p>
         ) : sessions.length === 0 ? (
-          <p>Nenhuma sessão registrada ainda.</p>
+          <p>{i18n.t("Nenhuma sessão registrada ainda.")}</p>
         ) : (
           <ul>
             {sessions.map((session) => (
@@ -459,7 +463,7 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
                 <div>
                   <div className="game-session-meta">
                     <time dateTime={session.played_at}>
-                      {new Date(session.played_at).toLocaleString('pt-BR')}
+                      {new Date(session.played_at).toLocaleString(i18n.language)}
                     </time>
                     <strong>{formatDuration(session.duration_minutes)}</strong>
                   </div>
@@ -496,7 +500,8 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
                           >
                             <path d="M8 3v10M3 8h10" />
                           </svg>
-                          Adicionar prints
+
+                          {i18n.t("Adicionar prints")}
                         </label>
                         <input
                           id={`session-images-${session.id}`}
@@ -512,8 +517,10 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
                         />
                         <span className="game-session-file-hint">
                           {selectedImages[session.id]?.length
-                            ? `${selectedImages[session.id].length} print(s) selecionado(s)`
-                            : 'JPG, PNG ou WEBP · até 5 MB cada'}
+                            ? i18n.t('{{count}} print(s) selecionado(s)', {
+                                count: selectedImages[session.id].length,
+                              })
+                            : i18n.t("JPG, PNG ou WEBP · até 5 MB cada")}
                         </span>
                       </div>
                       {(selectedImages[session.id]?.length ?? 0) > 0 && (
@@ -523,8 +530,10 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
                           disabled={uploadingSessionId === session.id}
                         >
                           {uploadingSessionId === session.id
-                            ? 'Enviando...'
-                            : `Enviar ${selectedImages[session.id]?.length ?? 0} imagem(ns)`}
+                            ? i18n.t("Enviando...")
+                            : i18n.t('Enviar {{count}} imagem(ns)', {
+                                count: selectedImages[session.id]?.length ?? 0,
+                              })}
                         </button>
                       )}
                     </div>
@@ -535,9 +544,9 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
                   className="game-session-delete"
                   onClick={() => void handleDelete(session)}
                   disabled={busy}
-                  aria-label="Excluir sessão"
-                >
-                  Excluir
+                  aria-label={i18n.t("Excluir sessão")}                >
+
+                  {i18n.t("Excluir")}
                 </button>
               </li>
             ))}

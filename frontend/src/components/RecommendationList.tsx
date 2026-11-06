@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 import { useState } from 'react'
 
 import './RecommendationList.css'
@@ -46,9 +47,10 @@ export default function RecommendationList({
   if (recommendations.length === 0) {
     return (
       <div>
-        <h2>🤖 Recomendações</h2>
+        <h2>{i18n.t("🤖 Recomendações")}</h2>
         <p>
-          Adicione alguns jogos à sua biblioteca para receber recomendações.
+
+          {i18n.t("Adicione alguns jogos à sua biblioteca para receber recomendações.")}
         </p>
       </div>
     )
@@ -58,10 +60,10 @@ export default function RecommendationList({
     <section className="recommendations">
       <div className="recommendations-header">
         <div>
-          <h2>🤖 Recomendações com IA</h2>
+          <h2>{i18n.t("🤖 Recomendações com IA")}</h2>
           <p>
-            Sugestões baseadas nos jogos da sua biblioteca, favoritos e
-            avaliações.
+
+            {i18n.t("Sugestões baseadas nos jogos da sua biblioteca, favoritos e avaliações.")}
           </p>
         </div>
       </div>
@@ -77,7 +79,7 @@ export default function RecommendationList({
               {recommendation.cover_image && (
                 <img
                   src={recommendation.cover_image}
-                  alt={`Capa de ${recommendation.title}`}
+                  alt={i18n.t('Capa de {{title}}', { title: recommendation.title })}
                   className="recommendation-cover"
                 />
               )}
@@ -90,7 +92,8 @@ export default function RecommendationList({
                 </p>
 
                 <span className="recommendation-reason-label">
-                  💡Por que recomendamos
+
+                  {i18n.t("💡Por que recomendamos")}
                 </span>
                 <p className="recommendation-reason">{recommendation.reason}</p>
                 {recommendation.rawg_id && (
@@ -104,11 +107,11 @@ export default function RecommendationList({
                     }
                   >
                     {addingGameId === recommendation.rawg_id
-                      ? 'Adicionando...'
+                      ? i18n.t("Adicionando...")
                       : alreadyInLibrary ||
                           addedGameIds.includes(recommendation.rawg_id!)
-                        ? '✓ Já está na biblioteca'
-                        : '+ Adicionar à biblioteca'}
+                        ? i18n.t("✓ Já está na biblioteca")
+                        : i18n.t("+ Adicionar à biblioteca")}
                   </button>
                 )}
               </div>

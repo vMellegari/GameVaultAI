@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 import { useEffect, useRef, useState } from 'react'
 import './GameplaySessionRecorder.css'
 
@@ -229,13 +230,14 @@ function GameplaySessionRecorder({
         {recording
           ? `Parar e revisar sessão · ${formatDuration(elapsedMs)}`
           : starting
-            ? 'Aguardando seleção da tela...'
-            : 'Iniciar sessão com gravação'}
+            ? i18n.t("Aguardando seleção da tela...")
+            : i18n.t("Iniciar sessão com gravação")}
       </button>
       <span className="gameplay-recorder-hint">
-        Selecione a janela do jogo. O tempo da gravação será usado na sessão (máx. 15 min).
+
+        {i18n.t("Selecione a janela do jogo. O tempo da gravação será usado na sessão (máx. 15 min).")}
       </span>
-      {error && !draft && <p className="gameplay-recorder-error" role="alert">{error}</p>}
+      {error && !draft && <p className="gameplay-recorder-error" role="alert">{i18n.t(error)}</p>}
 
       {draft && (
         <div className="gameplay-review-backdrop">
@@ -245,33 +247,33 @@ function GameplaySessionRecorder({
             aria-modal="true"
             aria-labelledby="gameplay-review-title"
           >
-            <h3 id="gameplay-review-title">Revisar sessão gravada</h3>
+            <h3 id="gameplay-review-title">{i18n.t("Revisar sessão gravada")}</h3>
             <p>
-              Duração: <strong>{formatDuration(draft.durationMs)}</strong>. A gravação será salva
-              localmente e a sessão ficará vinculada a este jogo. O tempo da sessão é arredondado
-              para o minuto mais próximo, com mínimo de 1 minuto.
+
+              {i18n.t("Duração:")} <strong>{formatDuration(draft.durationMs)}</strong>{i18n.t(". A gravação será salva localmente e a sessão ficará vinculada a este jogo. O tempo da sessão é arredondado para o minuto mais próximo, com mínimo de 1 minuto.")}
             </p>
             <label htmlFor="gameplay-session-notes">
-              Observação para uma análise futura (opcional)
+
+              {i18n.t("Observação para uma análise futura (opcional)")}
               <textarea
                 id="gameplay-session-notes"
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 maxLength={2000}
                 rows={4}
-                placeholder="Ex.: morri nesta parte porque avancei sem verificar os inimigos..."
-                disabled={saving}
+                placeholder={i18n.t("Ex.: morri nesta parte porque avancei sem verificar os inimigos...")}                disabled={saving}
               />
             </label>
-            {error && <p className="gameplay-recorder-error" role="alert">{error}</p>}
+            {error && <p className="gameplay-recorder-error" role="alert">{i18n.t(error)}</p>}
             <div className="gameplay-review-actions">
               <button type="button" onClick={downloadDraft} disabled={saving}>
-                Baixar cópia
+
+                {i18n.t("Baixar cópia")}
               </button>
               <button type="button" onClick={discardRecording} disabled={saving}>
-                {error.startsWith('A sessão foi registrada')
-                  ? 'Manter sessão sem clipe'
-                  : 'Descartar gravação'}
+                {error.startsWith(i18n.t("A sessão foi registrada"))
+                  ? i18n.t("Manter sessão sem clipe")
+                  : i18n.t("Descartar gravação")}
               </button>
               <button
                 type="button"
@@ -279,7 +281,7 @@ function GameplaySessionRecorder({
                 onClick={() => void saveRecording()}
                 disabled={saving}
               >
-                {saving ? 'Salvando sessão e clipe...' : 'Salvar sessão e clipe'}
+                {saving ? i18n.t("Salvando sessão e clipe...") : i18n.t("Salvar sessão e clipe")}
               </button>
             </div>
           </section>

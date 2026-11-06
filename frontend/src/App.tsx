@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import i18n, { formatNumber } from './i18n'
+import LanguageSwitcher from './components/LanguageSwitcher'
 import Login from './components/Login'
 import GameCard from './components/GameCard'
 import GameSearch from './components/GameSearch'
@@ -88,6 +91,7 @@ function matchesActiveFilter(
 }
 
 function App() {
+  useTranslation()
   const [authenticated, setAuthenticated] = useState(
     Boolean(localStorage.getItem('access_token')),
   )
@@ -189,7 +193,7 @@ function App() {
             : data
 
           return nextGames.sort((a, b) =>
-            a.title.localeCompare(b.title, 'pt-BR', {
+            a.title.localeCompare(b.title, i18n.language, {
               sensitivity: 'base',
             }),
           )
@@ -326,7 +330,7 @@ function App() {
         const updatedGames = [...currentGames, newGame]
 
         return updatedGames.sort((a, b) =>
-          a.title.localeCompare(b.title, 'pt-BR', {
+          a.title.localeCompare(b.title, i18n.language, {
             sensitivity: 'base',
           }),
         )
@@ -392,10 +396,11 @@ function App() {
       <header className="topbar">
         <div className="logo">
           <span>🎮</span>
-          <h1>GameVault AI</h1>
+          <h1>{i18n.t("GameVault AI")}</h1>
         </div>
 
         <div className="topbar-actions">
+          <LanguageSwitcher />
           <button
             className="add-game-button"
             onClick={() => {
@@ -405,20 +410,22 @@ function App() {
               setSelectedGameId(null)
             }}
           >
-            + Adicionar jogo
+
+            {i18n.t("+ Adicionar jogo")}
           </button>
 
           <div
             className="user-avatar"
             role="img"
-            aria-label={`Perfil de ${username || 'usuário'}`}
-            title={username || 'Usuário'}
+            aria-label={i18n.t('Perfil de {{name}}', { name: username || i18n.t('Usuário') })}
+            title={username || i18n.t('Usuário')}
           >
-            {Array.from(username.trim())[0]?.toLocaleUpperCase('pt-BR') ?? '?'}
+            {Array.from(username.trim())[0]?.toLocaleUpperCase(i18n.language) ?? '?'}
           </div>
 
           <button className="logout-button" onClick={handleLogout}>
-            Sair
+
+            {i18n.t("Sair")}
           </button>
         </div>
       </header>
@@ -435,7 +442,8 @@ function App() {
                 setSelectedGameId(null)
               }}
             >
-              🎮 Biblioteca
+
+              {i18n.t("🎮 Biblioteca")}
             </button>
 
             <button
@@ -447,7 +455,8 @@ function App() {
                 setSelectedGameId(null)
               }}
             >
-              📊 Estatísticas
+
+              {i18n.t("📊 Estatísticas")}
             </button>
 
             <button
@@ -459,7 +468,8 @@ function App() {
                 setSelectedGameId(null)
               }}
             >
-              🕘 Atividade
+
+              {i18n.t("🕘 Atividade")}
             </button>
           </nav>
         </aside>
@@ -515,9 +525,9 @@ function App() {
             <>
               <section className="page-header">
                 <div>
-                  <h2>Minha biblioteca</h2>
+                  <h2>{i18n.t("Minha biblioteca")}</h2>
 
-                  <p>Gerencie seus jogos e acompanhe seu progresso.</p>
+                  <p>{i18n.t("Gerencie seus jogos e acompanhe seu progresso.")}</p>
                 </div>
 
               </section>
@@ -525,54 +535,65 @@ function App() {
               <section className="library-summary">
                 <span>
                   {hasMoreGames
-                    ? `Mostrando ${games.length} jogos`
-                    : `${games.length} ${games.length === 1 ? 'jogo' : 'jogos'}`}
+                    ? i18n.t(
+                        games.length === 1
+                          ? 'Mostrando {{count}} jogo'
+                          : 'Mostrando {{count}} jogos',
+                        { count: formatNumber(games.length) },
+                      )
+                    : `${formatNumber(games.length)} ${i18n.t(games.length === 1 ? 'jogo' : 'jogos')}`}
                 </span>
               </section>
 
               <section className="filters filters-type">
-                <span className="filters-label">Tipo:</span>
+                <span className="filters-label">{i18n.t("Tipo:")}</span>
                 <button
                   className={`filter ${activeGameType === null ? 'active' : ''}`}
                   onClick={() => setActiveGameType(null)}
                 >
-                  Todos
+
+                  {i18n.t("Todos")}
                 </button>
                 <button
                   className={`filter ${activeGameType === 'STANDARD' ? 'active' : ''}`}
                   onClick={() => setActiveGameType('STANDARD')}
                 >
-                  Tradicionais
+
+                  {i18n.t("Tradicionais")}
                 </button>
                 <button
                   className={`filter ${activeGameType === 'ONGOING' ? 'active' : ''}`}
                   onClick={() => setActiveGameType('ONGOING')}
                 >
-                  Contínuos
+
+                  {i18n.t("Contínuos")}
                 </button>
               </section>
 
               <section className="filters filters-status">
-                <span className="filters-label">Status:</span>
+                <span className="filters-label">{i18n.t("Status:")}</span>
                 <button
                   className={`filter ${activeFilter === 'all' ? 'active' : ''}`}
                   onClick={() => handleFilterChange('all')}
                 >
-                  Todos
+
+                  {i18n.t("Todos")}
                 </button>
 
                 <button
                   className={`filter ${activeFilter === 'backlog' ? 'active' : ''}`}
                   onClick={() => handleFilterChange('backlog')}
                 >
-                  Backlog
+
+                  {i18n.t("Backlog")}
                 </button>
 
                 <button
                   className={`filter ${activeFilter === 'playing' ? 'active' : ''}`}
                   onClick={() => handleFilterChange('playing')}
                 >
-                  Jogando
+
+                  {i18n.t("Jogando")}
                 </button>
 
                 <button
@@ -581,7 +602,8 @@ function App() {
                   }`}
                   onClick={() => handleFilterChange('completed')}
                 >
-                  Concluídos
+
+                  {i18n.t("Concluídos")}
                 </button>
 
                 <button
@@ -590,21 +612,22 @@ function App() {
                   }`}
                   onClick={() => handleFilterChange('favorites')}
                 >
-                  Favoritos
+
+                  {i18n.t("Favoritos")}
                 </button>
               </section>
 
               <section className="library-search">
                 <label htmlFor="library-search-input">
-                  Buscar na biblioteca
+
+                  {i18n.t("Buscar na biblioteca")}
                 </label>
                 <input
                   id="library-search-input"
                   type="search"
                   value={searchInput}
                   onChange={(event) => setSearchInput(event.target.value)}
-                  placeholder="Ex.: The Witcher 3"
-                />
+                  placeholder={i18n.t("Ex.: The Witcher 3")}                />
               </section>
 
               <div>
@@ -614,19 +637,20 @@ function App() {
                   disabled={loadingRecommendations}
                 >
                   {loadingRecommendations
-                    ? '🤖 Analisando sua biblioteca...'
-                    : '✨ Gerar recomendações'}
+                    ? i18n.t("🤖 Analisando sua biblioteca...")
+                    : i18n.t("✨ Gerar recomendações")}
                 </button>
 
                 {loadingRecommendations && (
                   <p className="ai-recommendations-loading">
-                    Considerando seus jogos, favoritos, avaliações e gêneros...
+
+                    {i18n.t("Considerando seus jogos, favoritos, avaliações e gêneros...")}
                   </p>
                 )}
 
                 {recommendationError && (
                   <p className="ai-recommendations-error" role="alert">
-                    {recommendationError}
+                    {i18n.t(recommendationError)}
                   </p>
                 )}
 
@@ -644,29 +668,29 @@ function App() {
                   className={`action-message${actionMessageIsError ? ' error' : ''}`}
                   role={actionMessageIsError ? 'alert' : 'status'}
                 >
-                  {actionMessage}
+                  {i18n.t(actionMessage)}
                 </div>
               )}
 
               {loading && (
                 <div className="library-message">
-                  <p>Carregando sua biblioteca...</p>
+                  <p>{i18n.t("Carregando sua biblioteca...")}</p>
                 </div>
               )}
 
               {error && (
                 <div className="library-message error">
-                  <p>{error}</p>
+                  <p>{i18n.t(error)}</p>
                 </div>
               )}
 
               {!loading && !error && games.length === 0 && (
                 <div className="library-message">
-                  <h3>Nenhum jogo encontrado</h3>
+                  <h3>{i18n.t("Nenhum jogo encontrado")}</h3>
                   <p>
                     {searchTitle
-                      ? `Nenhum jogo encontrado para “${searchTitle}”.`
-                      : 'Não há jogos correspondentes a este filtro.'}
+                      ? i18n.t('Nenhum jogo encontrado para “{{title}}”.', { title: searchTitle })
+                      : i18n.t("Não há jogos correspondentes a este filtro.")}
                   </p>
                 </div>
               )}
@@ -694,7 +718,7 @@ function App() {
               {!loading && hasMoreGames && games.length > 0 && (
                 <div className="load-more-games">
                   {loadMoreError && (
-                    <p className="library-message error">{loadMoreError}</p>
+                    <p className="library-message error">{i18n.t(loadMoreError)}</p>
                   )}
                   <button
                     className="load-more-button"
@@ -709,7 +733,7 @@ function App() {
                     }
                     disabled={loadingMore}
                   >
-                    {loadingMore ? 'Carregando...' : 'Carregar mais jogos'}
+                    {loadingMore ? i18n.t("Carregando...") : i18n.t("Carregar mais jogos")}
                   </button>
                 </div>
               )}

@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   analyzeGameSessionNotes,
@@ -90,7 +91,8 @@ function TimelineImage({
   if (!imageUrl) {
     return (
       <span ref={placeholderRef} className="activity-image-placeholder">
-        Print
+
+        {i18n.t("Print")}
       </span>
     )
   }
@@ -317,23 +319,24 @@ function ActivityTimeline({
     <section className="activity-page">
       <header className="activity-page-header">
         <div>
-          <h2>Atividade recente</h2>
-          <p>Veja suas sessões de jogo e os prints que registrou.</p>
+          <h2>{i18n.t("Atividade recente")}</h2>
+          <p>{i18n.t("Veja suas sessões de jogo e os prints que registrou.")}</p>
         </div>
       </header>
 
       <form className="activity-filters" onSubmit={handleApplyFilters}>
         <label>
-          Jogo
+
+          {i18n.t("Jogo")}
           <input
             type="search"
             value={gameTitle}
             onChange={(event) => setGameTitle(event.target.value)}
-            placeholder="Buscar pelo nome do jogo"
-          />
+            placeholder={i18n.t("Buscar pelo nome do jogo")}          />
         </label>
         <label>
-          De
+
+          {i18n.t("De")}
           <input
             type="date"
             value={dateFrom}
@@ -341,7 +344,8 @@ function ActivityTimeline({
           />
         </label>
         <label>
-          Até
+
+          {i18n.t("Até")}
           <input
             type="date"
             value={dateTo}
@@ -349,7 +353,8 @@ function ActivityTimeline({
           />
         </label>
         <label>
-          Duração mínima (min)
+
+          {i18n.t("Duração mínima (min)")}
           <input
             type="number"
             min="1"
@@ -359,7 +364,8 @@ function ActivityTimeline({
           />
         </label>
         <label>
-          Duração máxima (min)
+
+          {i18n.t("Duração máxima (min)")}
           <input
             type="number"
             min="1"
@@ -370,14 +376,16 @@ function ActivityTimeline({
         </label>
         <div className="activity-filter-actions">
           <button type="submit" disabled={loading || loadingMore}>
-            Filtrar
+
+            {i18n.t("Filtrar")}
           </button>
           <button
             type="button"
             onClick={handleResetFilters}
             disabled={loading || loadingMore}
           >
-            Limpar
+
+            {i18n.t("Limpar")}
           </button>
         </div>
       </form>
@@ -385,10 +393,10 @@ function ActivityTimeline({
       <section className="session-insights">
         <div className="session-insights-header">
           <div>
-            <h3>Resumo inteligente</h3>
+            <h3>{i18n.t("Resumo inteligente")}</h3>
             <p>
-              A IA analisa até 30 observações recentes. A análise só é feita
-              quando você solicitar.
+
+              {i18n.t("A IA analisa até 30 observações recentes. A análise só é feita quando você solicitar.")}
             </p>
           </div>
           <button
@@ -396,7 +404,7 @@ function ActivityTimeline({
             onClick={() => void handleAnalyzeNotes()}
             disabled={analyzingNotes}
           >
-            {analyzingNotes ? 'Analisando...' : 'Analisar observações'}
+            {analyzingNotes ? i18n.t("Analisando...") : i18n.t("Analisar observações")}
           </button>
         </div>
         {insights && (
@@ -410,29 +418,30 @@ function ActivityTimeline({
               </ul>
             )}
             <span>
-              Baseado em {insights.sessions_analyzed}{' '}
-              {insights.sessions_analyzed === 1 ? 'sessão' : 'sessões'}
+
+              {i18n.t("Baseado em")} {insights.sessions_analyzed}{' '}
+              {insights.sessions_analyzed === 1 ? i18n.t("sessão") : i18n.t("sessões")}
             </span>
           </div>
         )}
       </section>
 
-      {error && <p className="activity-error" role="alert">{error}</p>}
+      {error && <p className="activity-error" role="alert">{i18n.t(error)}</p>}
 
       {loading ? (
-        <p className="activity-message">Carregando sua atividade...</p>
+        <p className="activity-message">{i18n.t("Carregando sua atividade...")}</p>
       ) : sessions.length === 0 ? (
         <div className="activity-empty">
           <span aria-hidden="true">🕹️</span>
           <h3>
             {hasAppliedFilters
-              ? 'Nenhuma sessão encontrada'
-              : 'Nenhuma sessão registrada'}
+              ? i18n.t("Nenhuma sessão encontrada")
+              : i18n.t("Nenhuma sessão registrada")}
           </h3>
           <p>
             {hasAppliedFilters
-              ? 'Tente ajustar os filtros ou limpe-os para ver toda a atividade.'
-              : 'Registre uma sessão nos detalhes de um jogo para vê-la aqui.'}
+              ? i18n.t("Tente ajustar os filtros ou limpe-os para ver toda a atividade.")
+              : i18n.t("Registre uma sessão nos detalhes de um jogo para vê-la aqui.")}
           </p>
           {hasAppliedFilters && (
             <button
@@ -440,7 +449,8 @@ function ActivityTimeline({
               className="activity-empty-reset"
               onClick={handleResetFilters}
             >
-              Limpar filtros
+
+              {i18n.t("Limpar filtros")}
             </button>
           )}
         </div>
@@ -470,7 +480,8 @@ function ActivityTimeline({
                       className="activity-open-game"
                       onClick={() => onOpenGame(session.game.id)}
                     >
-                      Ver jogo
+
+                      {i18n.t("Ver jogo")}
                     </button>
                   </div>
 
@@ -483,7 +494,8 @@ function ActivityTimeline({
                       }}
                     >
                       <label>
-                        Data e horário
+
+                        {i18n.t("Data e horário")}
                         <input
                           type="datetime-local"
                           value={editPlayedAt}
@@ -492,7 +504,8 @@ function ActivityTimeline({
                         />
                       </label>
                       <label>
-                        Duração (minutos)
+
+                        {i18n.t("Duração (minutos)")}
                         <input
                           type="number"
                           min="1"
@@ -503,7 +516,8 @@ function ActivityTimeline({
                         />
                       </label>
                       <label className="activity-edit-notes">
-                        Observações
+
+                        {i18n.t("Observações")}
                         <textarea
                           value={editNotes}
                           onChange={(event) => setEditNotes(event.target.value)}
@@ -516,14 +530,15 @@ function ActivityTimeline({
                           type="submit"
                           disabled={savingSessionId === session.id}
                         >
-                          {savingSessionId === session.id ? 'Salvando...' : 'Salvar'}
+                          {savingSessionId === session.id ? i18n.t("Salvando...") : i18n.t("Salvar")}
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingSessionId(null)}
                           disabled={savingSessionId === session.id}
                         >
-                          Cancelar
+
+                          {i18n.t("Cancelar")}
                         </button>
                       </div>
                     </form>
@@ -531,7 +546,7 @@ function ActivityTimeline({
                     <>
                       <div className="activity-session-meta">
                         <time dateTime={session.played_at}>
-                          {new Date(session.played_at).toLocaleString('pt-BR', {
+                          {new Date(session.played_at).toLocaleString(i18n.language, {
                             dateStyle: 'medium',
                             timeStyle: 'short',
                           })}
@@ -548,7 +563,8 @@ function ActivityTimeline({
                         className="activity-edit-button"
                         onClick={() => beginEditing(session)}
                       >
-                        Editar sessão
+
+                        {i18n.t("Editar sessão")}
                       </button>
                     </>
                   )}
@@ -577,7 +593,7 @@ function ActivityTimeline({
               onClick={() => void loadPage(page + 1)}
               disabled={loadingMore}
             >
-              {loadingMore ? 'Carregando...' : 'Carregar mais sessões'}
+              {loadingMore ? i18n.t("Carregando...") : i18n.t("Carregar mais sessões")}
             </button>
           )}
         </>

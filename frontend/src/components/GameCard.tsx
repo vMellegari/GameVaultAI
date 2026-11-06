@@ -1,3 +1,4 @@
+import i18n from '../i18n'
 import { useState, type MouseEvent } from 'react'
 import { completeGame, startGame, toggleFavorite } from '../services/api'
 import './GameCard.css'
@@ -98,7 +99,7 @@ function GameCard({
     <article className="game-card" onClick={handleCardClick}>
       <div className="game-cover">
         {coverImage ? (
-          <img src={coverImage} alt={`Capa de ${title}`} />
+          <img src={coverImage} alt={i18n.t('Capa de {{title}}', { title })} />
         ) : (
           <span className="game-cover-placeholder">🎮</span>
         )}
@@ -108,7 +109,7 @@ function GameCard({
           onClick={handleFavorite}
           disabled={actionLoading}
           aria-label={
-            favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+            favorite ? i18n.t("Remover dos favoritos") : i18n.t("Adicionar aos favoritos")
           }
         >
           {favorite ? '★' : '☆'}
@@ -121,7 +122,11 @@ function GameCard({
         <p className="game-platform">{platform}</p>
 
         <div className="game-meta">
-          <span className="game-status">{status}</span>
+          <span className="game-status">
+            {i18n.t(
+              ({ BACKLOG: 'Backlog', PLAYING: 'Jogando', COMPLETED: 'Concluído', WISHLIST: 'Wishlist', DROPPED: 'Abandonados' } as Record<string, string>)[status] ?? status,
+            )}
+          </span>
 
           {rating !== null && rating !== undefined && (
             <span className="game-rating">★ {rating}/10</span>
@@ -134,7 +139,8 @@ function GameCard({
             onClick={() => onDetails(id)}
             disabled={actionLoading}
           >
-            Ver detalhes
+
+            {i18n.t("Ver detalhes")}
           </button>
 
           {status === 'BACKLOG' && (
@@ -143,7 +149,7 @@ function GameCard({
               onClick={handleStart}
               disabled={actionLoading}
             >
-              {actionLoading ? 'Iniciando...' : '▶ Iniciar'}
+              {actionLoading ? i18n.t("Iniciando...") : i18n.t("▶ Iniciar")}
             </button>
           )}
 
@@ -153,12 +159,12 @@ function GameCard({
               onClick={handleComplete}
               disabled={actionLoading}
             >
-              {actionLoading ? 'Concluindo...' : '✓ Concluir'}
+              {actionLoading ? i18n.t("Concluindo...") : i18n.t("✓ Concluir")}
             </button>
           )}
 
           {status === 'COMPLETED' && (
-            <span className="completed-label">✓ Jogo concluído</span>
+            <span className="completed-label">{i18n.t("✓ Jogo concluído")}</span>
           )}
         </div>
       </div>

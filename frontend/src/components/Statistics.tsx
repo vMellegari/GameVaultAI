@@ -1,3 +1,4 @@
+import i18n, { formatNumber } from '../i18n'
 import { useEffect, useState } from 'react'
 
 import {
@@ -69,7 +70,7 @@ function Statistics({ onClose }: StatisticsProps) {
   if (loading) {
     return (
       <div className="statistics-page">
-        <p>Carregando estatísticas...</p>
+        <p>{i18n.t("Carregando estatísticas...")}</p>
       </div>
     )
   }
@@ -78,11 +79,12 @@ function Statistics({ onClose }: StatisticsProps) {
     return (
       <div className="statistics-page">
         <button className="close-button" onClick={onClose}>
-          ← Voltar
+
+          {i18n.t("← Voltar")}
         </button>
 
         <div className="library-message error">
-          <p>{error}</p>
+          <p>{i18n.t(error)}</p>
         </div>
       </div>
     )
@@ -92,12 +94,13 @@ function Statistics({ onClose }: StatisticsProps) {
     <div className="statistics-page">
       <div className="statistics-header">
         <div>
-          <h2>Estatísticas</h2>
-          <p>Acompanhe os números da sua biblioteca.</p>
+          <h2>{i18n.t("Estatísticas")}</h2>
+          <p>{i18n.t("Acompanhe os números da sua biblioteca.")}</p>
         </div>
 
         <button className="close-button" onClick={onClose}>
-          ← Voltar
+
+          {i18n.t("← Voltar")}
         </button>
       </div>
 
@@ -105,59 +108,59 @@ function Statistics({ onClose }: StatisticsProps) {
         <article className="stat-card">
           <span className="stat-icon">🎮</span>
           <div>
-            <strong>Total de jogos</strong>
-            <span>{stats.total_games}</span>
+            <strong>{i18n.t("Total de jogos")}</strong>
+            <span>{formatNumber(stats.total_games)}</span>
           </div>
         </article>
 
         <article className="stat-card">
           <span className="stat-icon">📚</span>
           <div>
-            <strong>Backlog</strong>
-            <span>{stats.backlog}</span>
+            <strong>{i18n.t("Backlog")}</strong>
+            <span>{formatNumber(stats.backlog)}</span>
           </div>
         </article>
 
         <article className="stat-card">
           <span className="stat-icon">▶️</span>
           <div>
-            <strong>Jogando</strong>
-            <span>{stats.playing}</span>
+            <strong>{i18n.t("Jogando")}</strong>
+            <span>{formatNumber(stats.playing)}</span>
           </div>
         </article>
 
         <article className="stat-card">
           <span className="stat-icon">✅</span>
           <div>
-            <strong>Concluídos</strong>
-            <span>{stats.completed}</span>
+            <strong>{i18n.t("Concluídos")}</strong>
+            <span>{formatNumber(stats.completed)}</span>
           </div>
         </article>
 
         <article className="stat-card">
           <span className="stat-icon">⭐</span>
           <div>
-            <strong>Favoritos</strong>
-            <span>{stats.favorite_games}</span>
+            <strong>{i18n.t("Favoritos")}</strong>
+            <span>{formatNumber(stats.favorite_games)}</span>
           </div>
         </article>
 
         <article className="stat-card">
           <span className="stat-icon">⏱️</span>
           <div>
-            <strong>Horas jogadas</strong>
-            <span>{stats.total_hours}h</span>
+            <strong>{i18n.t("Horas jogadas")}</strong>
+            <span>{formatNumber(stats.total_hours)} {i18n.t("h")}</span>
           </div>
         </article>
 
         <article className="stat-card">
           <span className="stat-icon">🏆</span>
           <div>
-            <strong>Média das avaliações</strong>
+            <strong>{i18n.t("Média das avaliações")}</strong>
             <span>
               {stats.average_rating !== null
-                ? `${stats.average_rating}/10`
-                : 'Não avaliado'}
+                ? `${formatNumber(stats.average_rating, { maximumFractionDigits: 1 })}/10`
+                : i18n.t("Não avaliado")}
             </span>
           </div>
         </article>
@@ -165,23 +168,23 @@ function Statistics({ onClose }: StatisticsProps) {
         <article className="stat-card">
           <span className="stat-icon">📌</span>
           <div>
-            <strong>Wishlist</strong>
-            <span>{stats.wishlist}</span>
+            <strong>{i18n.t("Wishlist")}</strong>
+            <span>{formatNumber(stats.wishlist)}</span>
           </div>
         </article>
 
         <article className="stat-card">
           <span className="stat-icon">🚫</span>
           <div>
-            <strong>Abandonados</strong>
-            <span>{stats.dropped}</span>
+            <strong>{i18n.t("Abandonados")}</strong>
+            <span>{formatNumber(stats.dropped)}</span>
           </div>
         </article>
       </section>
 
       {sessionStatsError && (
         <p className="session-stats-error" role="alert">
-          {sessionStatsError}
+          {i18n.t(sessionStatsError)}
         </p>
       )}
 
@@ -189,18 +192,18 @@ function Statistics({ onClose }: StatisticsProps) {
         <section className="session-statistics">
           <div className="session-statistics-heading">
             <div>
-              <h3>Atividade registrada</h3>
-              <p>Dados calculados a partir das sessões que você registrou.</p>
+              <h3>{i18n.t("Atividade registrada")}</h3>
+              <p>{i18n.t("Dados calculados a partir das sessões que você registrou.")}</p>
             </div>
             <div className="session-stat-total">
-              <strong>{sessionStats.total_hours}h</strong>
-              <span>{sessionStats.total_sessions} sessões</span>
+              <strong>{sessionStats.total_hours}{i18n.t("h")}</strong>
+              <span>{sessionStats.total_sessions}  {i18n.t("sessões")}</span>
             </div>
           </div>
 
           <div className="session-statistics-panels">
             <div className="session-chart-panel">
-              <h4>Horas por mês</h4>
+              <h4>{i18n.t("Horas por mês")}</h4>
               <div className="session-month-chart" role="list">
                 {sessionStats.monthly_hours.map((item) => {
                   const maximumHours = Math.max(
@@ -208,7 +211,7 @@ function Statistics({ onClose }: StatisticsProps) {
                     1,
                   )
                   const monthDate = new Date(`${item.month}-01T00:00:00`)
-                  const label = monthDate.toLocaleDateString('pt-BR', {
+                  const label = monthDate.toLocaleDateString(i18n.language, {
                     month: 'short',
                   })
 
@@ -219,7 +222,7 @@ function Statistics({ onClose }: StatisticsProps) {
                       role="listitem"
                       title={`${item.hours}h`}
                     >
-                      <span>{item.hours > 0 ? item.hours : ''}</span>
+                      <span>{item.hours > 0 ? formatNumber(item.hours, { maximumFractionDigits: 1 }) : ''}</span>
                       <div className="session-month-bar-track">
                         <div
                           className="session-month-bar"
@@ -239,9 +242,9 @@ function Statistics({ onClose }: StatisticsProps) {
             </div>
 
             <div className="session-top-games">
-              <h4>Jogos com mais horas registradas</h4>
+              <h4>{i18n.t("Jogos com mais horas registradas")}</h4>
               {sessionStats.most_played_games.length === 0 ? (
-                <p>Nenhuma sessão registrada ainda.</p>
+                <p>{i18n.t("Nenhuma sessão registrada ainda.")}</p>
               ) : (
                 <ol>
                   {sessionStats.most_played_games.map((game) => (
@@ -249,11 +252,11 @@ function Statistics({ onClose }: StatisticsProps) {
                       <div>
                         <strong>{game.title}</strong>
                         <span>
-                          {game.sessions}{' '}
-                          {game.sessions === 1 ? 'sessão' : 'sessões'}
+                          {formatNumber(game.sessions)}{' '}
+                          {game.sessions === 1 ? i18n.t("sessão") : i18n.t("sessões")}
                         </span>
                       </div>
-                      <b>{(game.minutes / 60).toFixed(1)}h</b>
+                      <b>{formatNumber(game.minutes / 60, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} {i18n.t("h")}</b>
                     </li>
                   ))}
                 </ol>
@@ -265,14 +268,14 @@ function Statistics({ onClose }: StatisticsProps) {
 
       <section className="statistics-summary">
         <div className="statistics-summary-header">
-          <h3>Resumo da biblioteca</h3>
-          <span>{stats.total_games} jogos</span>
+          <h3>{i18n.t("Resumo da biblioteca")}</h3>
+          <span>{formatNumber(stats.total_games)}  {i18n.t("jogos")}</span>
         </div>
 
         <div className="statistics-status-list">
           <div className="statistics-status-item">
             <div>
-              <span>📚 Backlog</span>
+              <span>{i18n.t("📚 Backlog")}</span>
               <strong>
                 {stats.backlog} —{' '}
                 {stats.total_games > 0
@@ -296,7 +299,7 @@ function Statistics({ onClose }: StatisticsProps) {
 
           <div className="statistics-status-item">
             <div>
-              <span>▶️ Jogando</span>
+              <span>{i18n.t("▶️ Jogando")}</span>
               <strong>
                 {stats.playing} —{' '}
                 {stats.total_games > 0
@@ -320,7 +323,7 @@ function Statistics({ onClose }: StatisticsProps) {
 
           <div className="statistics-status-item">
             <div>
-              <span>✅ Concluídos</span>
+              <span>{i18n.t("✅ Concluídos")}</span>
               <strong>
                 {stats.completed} —{' '}
                 {stats.total_games > 0
@@ -348,19 +351,19 @@ function Statistics({ onClose }: StatisticsProps) {
 
       <section className="statistics-summary">
         <div className="statistics-summary-header">
-          <h3>Tipos de jogo</h3>
-          <span>{stats.standard_games + stats.ongoing_games} jogos</span>
+          <h3>{i18n.t("Tipos de jogo")}</h3>
+          <span>{stats.standard_games + stats.ongoing_games}  {i18n.t("jogos")}</span>
         </div>
 
         <div className="statistics-status-list">
           {[
             {
-              label: '🎮 Tradicionais',
+              label: i18n.t("🎮 Tradicionais"),
               count: stats.standard_games,
               ongoing: false,
             },
             {
-              label: '🔄 Contínuos',
+              label: i18n.t("🔄 Contínuos"),
               count: stats.ongoing_games,
               ongoing: true,
             },
