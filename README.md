@@ -94,10 +94,11 @@ See `.env.example`, `frontend/.env.example`, and [frontend/README.md](frontend/R
 
 ## Testing and CI
 
-Backend tests use a separate SQLite database and mocks; they do not call RAWG or Gemini. The GitHub Actions workflow runs pytest, ESLint, and the frontend TypeScript/Vite build.
+Backend tests use a separate SQLite database and mocks; they do not call RAWG or Gemini. Frontend tests cover language persistence and verify that every literal translation key used by the screens has an English translation. The GitHub Actions workflow runs pytest, frontend tests, ESLint, and the TypeScript/Vite build.
 
 ```powershell
 pytest -q
+npm --prefix frontend test
 npm --prefix frontend run lint
 npm --prefix frontend run build
 ```

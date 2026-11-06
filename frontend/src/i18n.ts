@@ -20,6 +20,7 @@ const en: Record<string, string> = {
   Concluídos: 'Completed',
   Favoritos: 'Favorites',
   'Buscar na biblioteca': 'Search your library',
+  Buscar: 'Search',
   'Ex.: The Witcher 3': 'e.g. The Witcher 3',
   'Ex: The Witcher 3': 'e.g. The Witcher 3',
   '0 a 10': '0 to 10',
@@ -95,6 +96,7 @@ const en: Record<string, string> = {
   'Cada imagem deve ter no máximo 5 MB.': 'Each image must be 5 MB or smaller.',
   'Selecione pelo menos uma imagem para anexar.': 'Select at least one image to attach.',
   'Não foi possível anexar as imagens.': 'Could not attach the images.',
+  'Selecione pelo menos uma imagem.': 'Select at least one image.',
   'Não foi possível excluir a imagem.': 'Could not delete the image.',
   'Excluir a imagem “{{name}}”?': 'Delete image “{{name}}”?',
   'Anexar imagens': 'Attach images',
@@ -105,6 +107,7 @@ const en: Record<string, string> = {
   'Observações (opcional)': 'Notes (optional)',
   h: 'h',
   'A gravação de tela não é compatível com este navegador.': 'Screen recording is not supported by this browser.',
+  'Parar e revisar sessão · {{duration}}': 'Stop and review session · {{duration}}',
   'A gravação precisa ser aberta em uma conexão segura (HTTPS ou localhost).': 'Recording requires a secure connection (HTTPS or localhost).',
   'O navegador encontrou um erro durante a gravação.': 'The browser encountered an error while recording.',
   'A gravação ficou vazia. Tente novamente.': 'The recording was empty. Please try again.',
@@ -356,8 +359,7 @@ i18n.use(initReactI18next).init({
   },
 })
 
-i18n.on('languageChanged', (language) => {
-  localStorage.setItem('gamevault-language', language)
+function updateDocumentLanguage(language: string) {
   document.documentElement.lang = language
   document.title = i18n.t('GameVault AI | Sua biblioteca de jogos', { lng: language })
   document.querySelector('meta[name="description"]')?.setAttribute(
@@ -366,10 +368,14 @@ i18n.on('languageChanged', (language) => {
       lng: language,
     }),
   )
+}
+
+i18n.on('languageChanged', (language) => {
+  localStorage.setItem('gamevault-language', language)
+  updateDocumentLanguage(language)
 })
 
-document.documentElement.lang = i18n.language
-document.title = i18n.t('GameVault AI | Sua biblioteca de jogos')
+updateDocumentLanguage(i18n.language)
 
 export function translateMessage(message: string): string {
   const sessionImageLimit = message.match(/^Cada sessão pode ter no máximo (\d+) imagens\.$/)

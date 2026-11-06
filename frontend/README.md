@@ -17,8 +17,9 @@ Set `VITE_API_URL` in `frontend/.env` when the backend is not running at `http:/
 ## Quality checks
 
 ```powershell
-npm run lint
-npm run build
+npm --prefix frontend test
+npm --prefix frontend run lint
+npm --prefix frontend run build
 ```
 
 See the root [README](../README.md) for the complete application setup and the [roadmap](../ROADMAP.md) for planned work.

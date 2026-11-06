@@ -228,7 +228,9 @@ function GameplaySessionRecorder({
         disabled={starting || saving || (draft !== null && !recording)}
       >
         {recording
-          ? `Parar e revisar sessão · ${formatDuration(elapsedMs)}`
+          ? i18n.t('Parar e revisar sessão · {{duration}}', {
+              duration: formatDuration(elapsedMs),
+            })
           : starting
             ? i18n.t("Aguardando seleção da tela...")
             : i18n.t("Iniciar sessão com gravação")}

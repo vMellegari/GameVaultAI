@@ -1,4 +1,4 @@
-import i18n from '../i18n'
+import i18n, { formatNumber } from '../i18n'
 import { useEffect, useState } from 'react'
 import {
   deleteLocalGameplayClip,
@@ -16,8 +16,8 @@ function formatDuration(milliseconds: number) {
 
 function formatFileSize(bytes: number) {
   return bytes >= 1024 * 1024
-    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-    : `${Math.max(1, Math.round(bytes / 1024))} KB`
+    ? `${formatNumber(bytes / (1024 * 1024), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB`
+    : `${formatNumber(Math.max(1, Math.round(bytes / 1024)))} KB`
 }
 
 function LocalClipPlayer({ clip }: { clip: LocalGameplayClip }) {

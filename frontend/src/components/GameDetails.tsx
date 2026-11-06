@@ -362,7 +362,7 @@ function GameDetails({
                 }}
               >
 
-                {i18n.t("▧ Ver galeria (")}{galleryImages.length})
+                {i18n.t("▧ Ver galeria (")}{formatNumber(galleryImages.length)})
               </button>
             )}
             {screenshotResult?.gameId === gameId && galleryImages.length < 2 && (
@@ -534,7 +534,7 @@ function GameDetails({
                   {game.game_type === 'ONGOING'
                     ? i18n.t("Não se aplica")
                     : game.completed_at
-                    ? new Date(game.completed_at).toLocaleDateString(i18n.language)
+                    ? formatDate(game.completed_at)
                     : i18n.t("Não concluído")}
                 </span>
               </div>
@@ -703,7 +703,7 @@ function GameDetails({
                   {i18n.t("← Anterior")}
                 </button>
                 <span>
-                  {galleryIndex + 1} / {galleryImages.length}  {i18n.t("· troca automática")}
+                  {formatNumber(galleryIndex + 1)} / {formatNumber(galleryImages.length)}  {i18n.t("· troca automática")}
                 </span>
                 <button type="button" onClick={showNextGalleryImage} aria-label={i18n.t("Próxima imagem")}>
 

@@ -196,8 +196,8 @@ function Statistics({ onClose }: StatisticsProps) {
               <p>{i18n.t("Dados calculados a partir das sessões que você registrou.")}</p>
             </div>
             <div className="session-stat-total">
-              <strong>{sessionStats.total_hours}{i18n.t("h")}</strong>
-              <span>{sessionStats.total_sessions}  {i18n.t("sessões")}</span>
+              <strong>{formatNumber(sessionStats.total_hours)}{i18n.t("h")}</strong>
+              <span>{formatNumber(sessionStats.total_sessions)}  {i18n.t("sessões")}</span>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-import i18n from '../i18n'
+import i18n, { formatNumber } from '../i18n'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   createGameSession,
@@ -383,7 +383,7 @@ function GameSessions({ gameId, gameTitle, onHoursChanged }: GameSessionsProps) 
           <p>{i18n.t("Registre suas partidas e acompanhe o tempo jogado.")}</p>
         </div>
         <span>
-          {sessions.length} {sessions.length === 1 ? i18n.t("sessão") : i18n.t("sessões")}
+          {formatNumber(sessions.length)} {sessions.length === 1 ? i18n.t("sessão") : i18n.t("sessões")}
         </span>
       </div>
 

@@ -1,4 +1,4 @@
-import i18n from '../i18n'
+import i18n, { formatDate } from '../i18n'
 import { useState, type FormEvent } from 'react'
 import { importGame, searchGames } from '../services/api'
 import './GameSearch.css'
@@ -95,7 +95,7 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
         />
 
         <button type="submit" disabled={loading}>
-          {loading ? i18n.t("Buscando...") : 'Buscar'}
+          {loading ? i18n.t("Buscando...") : i18n.t('Buscar')}
         </button>
       </form>
 
@@ -125,7 +125,7 @@ function GameSearch({ onClose, onImported }: GameSearchProps) {
             <div className="search-result-info">
               <h3>{game.title}</h3>
 
-              {game.released && <p>{i18n.t("Lançamento:")} {game.released}</p>}
+              {game.released && <p>{i18n.t("Lançamento:")} {formatDate(game.released)}</p>}
             </div>
 
             <div className="search-result-actions">

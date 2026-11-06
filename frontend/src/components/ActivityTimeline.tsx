@@ -1,4 +1,4 @@
-import i18n from '../i18n'
+import i18n, { formatNumber } from '../i18n'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   analyzeGameSessionNotes,
@@ -419,7 +419,7 @@ function ActivityTimeline({
             )}
             <span>
 
-              {i18n.t("Baseado em")} {insights.sessions_analyzed}{' '}
+              {i18n.t("Baseado em")} {formatNumber(insights.sessions_analyzed)}{' '}
               {insights.sessions_analyzed === 1 ? i18n.t("sessão") : i18n.t("sessões")}
             </span>
           </div>
