@@ -25,6 +25,8 @@ O aplicativo não anexa imagens de sessões nem vídeos de gameplay ao Gemini. A
 
 Gerenciamento da biblioteca, busca e importação pela RAWG, sessões, estatísticas e gravação local não chamam o Gemini e continuam disponíveis sem a chave da API ou durante uma indisponibilidade do serviço. Apenas recomendações e análise das observações dependem do Gemini. Busca e importação pela RAWG são uma integração externa separada e exigem sua própria chave.
 
+As buscas enviam o texto pesquisado à RAWG. Importações e pedidos de screenshots usam IDs de jogos da RAWG; títulos das recomendações também são pesquisados lá para obter capas. O backend faz as chamadas à API, enquanto o navegador carrega diretamente dos hosts de imagens os endereços de capas e screenshots retornados pela RAWG. Esses hosts podem receber metadados de conexão do navegador, como o endereço IP. O GameVaultAI não inclui nomes de usuário nem e-mails nessas solicitações à RAWG. O backend envia a chave da RAWG como parâmetro da URL; os logs da infraestrutura de hospedagem devem ocultar parâmetros de consulta.
+
 ### Descrição para o formulário BYOP
 
 > GameVaultAI is a full-stack personal game library and gameplay tracking application built with React, TypeScript, Python, FastAPI, and PostgreSQL. It helps users organize game collections, track play sessions, review statistics, and discover titles through RAWG. Optional recommendations and session-note summaries use the external Google Gemini API; the project does not develop or host AI models.
@@ -32,6 +34,8 @@ Gerenciamento da biblioteca, busca e importação pela RAWG, sessões, estatíst
 ## Dados e privacidade
 
 O PostgreSQL armazena nomes de usuário, e-mails, hashes de senhas, registros da biblioteca, sessões de gameplay e metadados das imagens. As senhas são armazenadas como hash. Os arquivos de imagem ficam em disco local por padrão ou em um bucket privado configurado no Supabase Storage. O navegador mantém o JWT no `localStorage` e os arquivos de vídeo no IndexedDB. Os clipes podem ser baixados pelo usuário e são removidos se forem excluídos no aplicativo ou se os dados do navegador forem apagados.
+
+As imagens enviadas às sessões são armazenadas como recebidas; o aplicativo não remove EXIF nem outros metadados embutidos. Imagens, observações livres e gravações de tela podem conter dados pessoais ou informações sobre outras pessoas. As gravações, inclusive áudio capturado quando disponível, permanecem no IndexedDB do navegador e não são enviadas ao backend. Atualmente, o aplicativo não oferece endpoint para excluir contas ou exportar todos os dados; os registros da conta permanecem no banco até que o operador da instalação os remova. O usuário pode excluir jogos, sessões e imagens de sessões individualmente pelo aplicativo.
 
 O aplicativo aceita múltiplas contas e pode processar dados pessoais informados por usuários, embora o proprietário relate que foi seu único usuário até agora. Os testes usam contas e dados fictícios, com chamadas à RAWG e ao Gemini simuladas. Uma instalação poderá tratar dados pessoais se outras pessoas se cadastrarem ou incluírem informações identificadoras nas observações.
 
@@ -55,7 +59,7 @@ O aplicativo aceita múltiplas contas e pode processar dados pessoais informados
 
 ## Configuração local
 
-Copie os exemplos de ambiente e configure um `SECRET_KEY` único. As chaves de API são opcionais, exceto para os recursos que dependem de cada integração.
+Copie os exemplos de ambiente e configure um `SECRET_KEY` aleatório e único, com pelo menos 32 caracteres. A aplicação rejeita o placeholder do exemplo e chaves menores. As chaves de API são opcionais, exceto para os recursos que dependem de cada integração.
 
 ```powershell
 Copy-Item .env.example .env

@@ -25,6 +25,8 @@ The application does not attach session images or gameplay videos to Gemini. Ses
 
 Library management, RAWG search/import, sessions, statistics, and local recording do not call Gemini and remain available when its API key is absent or the service is unavailable. Only recommendations and session-note analysis depend on Gemini. RAWG search/import is a separate external integration and still requires its own API key.
 
+RAWG searches send the search text to RAWG. Import and screenshot requests use RAWG game IDs, and recommendation titles are also searched there to add cover art. The backend makes the API requests, while the browser loads cover and screenshot URLs returned by RAWG directly from their image hosts. Those image hosts can receive the browser's network metadata, such as its IP address. GameVaultAI does not include account usernames or email addresses in these RAWG requests. The backend sends its RAWG API key as a query parameter; deployment logs should redact query strings.
+
 ### BYOP project description
 
 > GameVaultAI is a full-stack personal game library and gameplay tracking application built with React, TypeScript, Python, FastAPI, and PostgreSQL. It helps users organize game collections, track play sessions, review statistics, and discover titles through RAWG. Optional recommendations and session-note summaries use the external Google Gemini API; the project does not develop or host AI models.
@@ -32,6 +34,8 @@ Library management, RAWG search/import, sessions, statistics, and local recordin
 ## Data and privacy
 
 PostgreSQL stores account usernames, email addresses, password hashes, game-library records, gameplay-session records, and image metadata. Passwords are hashed before storage. Session images themselves are stored on local disk by default or in a configured private Supabase Storage bucket. The browser stores the JWT in `localStorage` and gameplay video blobs in IndexedDB. Clips can be downloaded by the user and are removed if deleted in the app or browser data is cleared.
+
+Uploaded session images are stored as received; the application does not remove EXIF or other embedded image metadata. Images, free-text notes, and screen recordings may contain personal information or information about other people. Screen recordings, including captured audio when available, stay in browser IndexedDB and are not sent to the backend. The app currently has no account deletion or data export endpoint; database account records remain until removed by the deployment operator. Users can delete individual games, sessions, and session images through the app.
 
 The app supports multiple accounts and can process personal data entered by users, even though the project owner reports being its only user so far. Tests use synthetic accounts and fixture data, with mocked RAWG and Gemini calls. A deployment may handle personal data if other people register or enter identifying details in session notes.
 
@@ -55,7 +59,7 @@ The app supports multiple accounts and can process personal data entered by user
 
 ## Local setup
 
-Copy the environment template and set a unique `SECRET_KEY`. API keys are optional unless you use their corresponding integrations.
+Copy the environment template and set a unique random `SECRET_KEY` of at least 32 characters. The API rejects the example placeholder and shorter keys. API keys are optional unless you use their corresponding integrations.
 
 ```powershell
 Copy-Item .env.example .env

@@ -53,6 +53,10 @@ class Settings:
 
     if not SECRET_KEY:
         raise RuntimeError("SECRET_KEY não configurada.")
+    if SECRET_KEY == "replace-with-a-long-random-value":
+        raise RuntimeError("SECRET_KEY ainda contém o placeholder do exemplo.")
+    if len(SECRET_KEY) < 32:
+        raise RuntimeError("SECRET_KEY deve ter pelo menos 32 caracteres.")
 
     ALGORITHM = os.getenv(
         "ALGORITHM",
