@@ -14,14 +14,14 @@ function getAuthHeaders() {
   }
 }
 
-export async function login(username: string, password: string) {
+export async function login(identifier: string, password: string) {
   const response = await fetch(`${API_URL}/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      username,
+      identifier,
       password,
     }),
   })
@@ -32,6 +32,10 @@ export async function login(username: string, password: string) {
   }
 
   return response.json()
+}
+
+export function getDiscordLoginUrl() {
+  return `${API_URL}/auth/discord`
 }
 
 export async function register(

@@ -6,7 +6,7 @@ O GameVaultAI é uma aplicação full stack para organizar uma biblioteca pessoa
 
 ## Funcionalidades
 
-- Cadastro de contas e autenticação JWT.
+- Cadastro de contas e autenticação JWT, com login por usuário/e-mail e OAuth opcional do Discord.
 - Biblioteca pessoal com busca, filtros, favoritos e paginação.
 - Busca e importação de jogos pela RAWG.
 - Acompanhamento de status, plataforma, avaliação, horas jogadas, gêneros e conclusão.
@@ -33,7 +33,9 @@ As buscas enviam o texto pesquisado à RAWG. Importações e pedidos de screensh
 
 ## Dados e privacidade
 
-O PostgreSQL armazena nomes de usuário, e-mails, hashes de senhas, registros da biblioteca, sessões de gameplay e metadados das imagens. As senhas são armazenadas como hash. Os arquivos de imagem ficam em disco local por padrão ou em um bucket privado configurado no Supabase Storage. O navegador mantém o JWT no `localStorage` e os arquivos de vídeo no IndexedDB. Os clipes podem ser baixados pelo usuário e são removidos se forem excluídos no aplicativo ou se os dados do navegador forem apagados.
+O PostgreSQL armazena nomes de usuário, e-mails, hashes de senha (nulos para contas criadas pelo Discord), o ID da conta Discord quando vinculada, registros da biblioteca, sessões de gameplay e metadados das imagens. As senhas são armazenadas como hash. O login opcional pelo Discord usa OAuth2 para obter o ID e o e-mail verificado da conta; o aplicativo não guarda tokens de acesso do Discord. Os arquivos de imagem ficam em disco local por padrão ou em um bucket privado configurado no Supabase Storage. O navegador mantém o JWT do GameVaultAI no `localStorage` e os arquivos de vídeo no IndexedDB. Os clipes podem ser baixados pelo usuário e são removidos se forem excluídos no aplicativo ou se os dados do navegador forem apagados.
+
+Quando o usuário escolhe entrar pelo Discord, o navegador é redirecionado ao Discord, que retorna o e-mail verificado e o ID da conta ao backend pelo callback OAuth configurado. Essa troca é opcional e não ocorre no login por usuário/e-mail.
 
 As imagens enviadas às sessões são armazenadas como recebidas; o aplicativo não remove EXIF nem outros metadados embutidos. Imagens, observações livres e gravações de tela podem conter dados pessoais ou informações sobre outras pessoas. As gravações, inclusive áudio capturado quando disponível, permanecem no IndexedDB do navegador e não são enviadas ao backend. Atualmente, o aplicativo não oferece endpoint para excluir contas ou exportar todos os dados; os registros da conta permanecem no banco até que o operador da instalação os remova. O usuário pode excluir jogos, sessões e imagens de sessões individualmente pelo aplicativo.
 
@@ -56,6 +58,7 @@ O aplicativo aceita múltiplas contas e pode processar dados pessoais informados
 - Docker Desktop com Docker Compose (para execução em contêineres)
 - Chave da RAWG para busca e importação de jogos
 - Chave do Gemini somente para recomendações e análise de observações
+- Credenciais de aplicativo Discord somente se habilitar o login pelo Discord
 
 ## Configuração local
 
@@ -95,6 +98,8 @@ docker compose up --build -d
 A interface em contêiner fica em `http://localhost:8080`. Configure credenciais de produção no gerenciador de segredos do serviço de hospedagem. Nunca use a senha de banco de exemplo ou um segredo JWT provisório em produção. `SUPABASE_SERVICE_ROLE_KEY` deve existir apenas no ambiente do backend.
 
 Consulte `.env.example`, `frontend/.env.example` e [frontend/README.md](frontend/README.md) para detalhes. `STORAGE_BACKEND=supabase` e um bucket privado habilitam o Supabase Storage para prints; disco local é o padrão. `GEMINI_MODEL` e `GEMINI_FALLBACK_MODEL` selecionam os modelos principal e alternativo.
+
+Para habilitar o login pelo Discord, crie um aplicativo OAuth2 no Discord Developer Portal, configure `DISCORD_CLIENT_ID` e `DISCORD_CLIENT_SECRET` no ambiente do backend e cadastre o valor exato de `DISCORD_REDIRECT_URI` como URI de redirecionamento (padrão: `http://localhost:8000/auth/discord/callback`). Configure `FRONTEND_URL` com a origem da interface (padrão Vite: `http://localhost:5173`; no Docker Compose: `http://localhost:8080`). O botão do Discord só aparece quando as duas credenciais estão definidas. O aplicativo solicita apenas os escopos `identify` e `email`, e exige e-mail verificado pelo Discord. Também é possível entrar usando o nome de usuário ou o e-mail da conta GameVaultAI.
 
 ## Testes e CI
 

@@ -125,6 +125,55 @@
   cursor: not-allowed;
 }
 
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 12px;
+  color: var(--gv-text-muted);
+  font-size: 13px;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: var(--gv-border);
+}
+
+.discord-login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #5865f2;
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  transition: background 120ms ease, transform 120ms ease;
+  cursor: pointer;
+}
+
+.discord-login-button:hover {
+  background: #4752c4;
+}
+
+.discord-login-button:active {
+  transform: translateY(1px);
+}
+
+.discord-logo {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+}
+
 .auth-mode-button {
   display: block;
   width: 100%;

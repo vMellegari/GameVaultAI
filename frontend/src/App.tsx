@@ -54,6 +54,16 @@ function getUsernameFromToken() {
   }
 }
 
+function consumeDiscordLogin() {
+  const params = new URLSearchParams(window.location.hash.slice(1))
+  const token = params.get('access_token')
+  if (!token) return
+  localStorage.setItem('access_token', token)
+  window.history.replaceState(null, '', window.location.pathname + window.location.search)
+}
+
+consumeDiscordLogin()
+
 function matchesActiveFilter(
   game: Game,
   filter: Filter,

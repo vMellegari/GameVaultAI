@@ -6,7 +6,7 @@ GameVaultAI is a full-stack application for organizing a personal video game lib
 
 ## Features
 
-- Account registration and JWT authentication.
+- Account registration and JWT authentication, with username/email sign-in and optional Discord OAuth.
 - Personal game library with search, filters, favorites, and pagination.
 - Game search and import through RAWG.
 - Game status, platform, rating, playtime, genres, and completion tracking.
@@ -33,7 +33,9 @@ RAWG searches send the search text to RAWG. Import and screenshot requests use R
 
 ## Data and privacy
 
-PostgreSQL stores account usernames, email addresses, password hashes, game-library records, gameplay-session records, and image metadata. Passwords are hashed before storage. Session images themselves are stored on local disk by default or in a configured private Supabase Storage bucket. The browser stores the JWT in `localStorage` and gameplay video blobs in IndexedDB. Clips can be downloaded by the user and are removed if deleted in the app or browser data is cleared.
+PostgreSQL stores account usernames, email addresses, password hashes (nullable for accounts created through Discord), the Discord account ID when linked, game-library records, gameplay-session records, and image metadata. Passwords are hashed before storage. Optional Discord sign-in uses Discord OAuth2 to obtain the account's verified email and ID; the app does not retain Discord access tokens. Session images themselves are stored on local disk by default or in a configured private Supabase Storage bucket. The browser stores the GameVaultAI JWT in `localStorage` and gameplay video blobs in IndexedDB. Clips can be downloaded by the user and are removed if deleted in the app or browser data is cleared.
+
+When a user chooses Discord sign-in, the browser is redirected to Discord and Discord returns the verified email and account ID to the backend through the configured OAuth callback. This exchange is optional and does not occur during username/email sign-in.
 
 Uploaded session images are stored as received; the application does not remove EXIF or other embedded image metadata. Images, free-text notes, and screen recordings may contain personal information or information about other people. Screen recordings, including captured audio when available, stay in browser IndexedDB and are not sent to the backend. The app currently has no account deletion or data export endpoint; database account records remain until removed by the deployment operator. Users can delete individual games, sessions, and session images through the app.
 
@@ -56,6 +58,7 @@ The app supports multiple accounts and can process personal data entered by user
 - Docker Desktop with Docker Compose (for the containerized setup)
 - RAWG API key for game search/import
 - Gemini API key only for AI recommendations and session-note analysis
+- Discord application credentials only if you enable Discord sign-in
 
 ## Local setup
 
@@ -95,6 +98,8 @@ docker compose up --build -d
 The containerized frontend is available at `http://localhost:8080`. Configure production credentials in the deployment provider's secret settings. Never use the example database password or a placeholder JWT secret in a public deployment. `SUPABASE_SERVICE_ROLE_KEY` belongs only in the backend environment.
 
 See `.env.example`, `frontend/.env.example`, and [frontend/README.md](frontend/README.md) for configuration details. Set `STORAGE_BACKEND=supabase` and configure a private bucket to store session screenshots in Supabase; local disk is the default. `GEMINI_MODEL` and `GEMINI_FALLBACK_MODEL` select the primary and fallback models.
+
+To enable Discord sign-in, create an OAuth2 application in the Discord Developer Portal, set `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` in the backend environment, and register the exact `DISCORD_REDIRECT_URI` (default: `http://localhost:8000/auth/discord/callback`) as a redirect URI. Set `FRONTEND_URL` to the frontend origin (default for Vite: `http://localhost:5173`; use `http://localhost:8080` for the Docker Compose frontend). Discord login is hidden until both credentials are configured. The app requests only `identify` and `email`; Discord email must be verified. Users can also sign in with the username or email on their GameVaultAI account.
 
 ## Testing and CI
 

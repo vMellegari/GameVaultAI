@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -10,12 +11,15 @@ def get_user_by_username(db: Session, username: str):
 
 def authenticate_user(
     db: Session,
-    username: str,
+    identifier: str,
     password: str
 ):
-    user = get_user_by_username(db, username)
+    normalized_identifier = identifier.strip()
+    user = get_user_by_username(db, normalized_identifier)
+    if user is None:
+        user = get_user_by_email(db, normalized_identifier.lower())
 
-    if not user:
+    if not user or not user.password_hash:
         return None
 
     if not verify_password(
@@ -26,8 +30,45 @@ def authenticate_user(
 
     return user
 
+
+def create_or_link_discord_user(db: Session, discord_id: str, email: str, display_name: str):
+    user = db.query(User).filter(User.discord_id == discord_id).first()
+    if user:
+        return user
+
+    normalized_email = email.strip().lower()
+    user = get_user_by_email(db, normalized_email)
+    if user:
+        if user.discord_id and user.discord_id != discord_id:
+            raise ValueError("This email is already linked to another Discord account.")
+        user.discord_id = discord_id
+        db.commit()
+        db.refresh(user)
+        return user
+
+    base_username = "".join(
+        character.lower() if character.isalnum() or character in "_-" else "_"
+        for character in display_name.strip()
+    ).strip("_-")[:24] or "discord_user"
+    username = base_username
+    suffix = 1
+    while get_user_by_username(db, username):
+        username = f"{base_username[:24 - len(str(suffix)) - 1]}_{suffix}"
+        suffix += 1
+
+    user = User(
+        username=username,
+        email=normalized_email,
+        password_hash=None,
+        discord_id=discord_id,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
 def get_user_by_email(db: Session, email: str):
-    return db.query(User).filter(User.email == email).first()
+    return db.query(User).filter(func.lower(User.email) == email.strip().lower()).first()
 
 def create_user(db: Session, user: UserCreate):
     existing_username = get_user_by_username(db, user.username)
@@ -48,7 +89,7 @@ def create_user(db: Session, user: UserCreate):
 
     db_user = User(
         username=user.username,
-        email=user.email,
+        email=str(user.email).strip().lower(),
         password_hash=hash_password(user.password)
     )
 

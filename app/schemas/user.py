@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import AliasChoices, BaseModel, EmailStr, Field
 
 class UserCreate(BaseModel):
     username: str
@@ -14,7 +14,7 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 class UserLogin(BaseModel):
-    username: str
+    identifier: str = Field(validation_alias=AliasChoices("identifier", "username"))
     password: str
 
 class Token(BaseModel):

@@ -89,6 +89,26 @@ def test_login_rejects_invalid_password(client):
     assert response.json()["detail"] == "Usuário ou senha inválidos."
 
 
+def test_login_accepts_email_identifier_case_insensitively(client):
+    client.post(
+        "/users",
+        json={
+            "username": "emailuser",
+            "email": "emailuser@example.com",
+            "password": "correct-password",
+        },
+    )
+
+    response = client.post(
+        "/login",
+        json={"identifier": "EMAILUSER@EXAMPLE.COM", "password": "correct-password"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["token_type"] == "bearer"
+    assert response.json()["access_token"]
+
+
 def test_protected_endpoint_rejects_invalid_token(client):
     response = client.get(
         "/auth-test",
