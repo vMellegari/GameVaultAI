@@ -217,6 +217,10 @@ def test_session_insights_use_gemini_on_request_and_report_notes(
     auth_headers,
     monkeypatch,
 ):
+    monkeypatch.setattr(
+        "app.services.session_insight_service.settings.GEMINI_API_KEY",
+        "test-gemini-api-key",
+    )
     game = create_game(title="Notes Game")
     create_session(
         client,

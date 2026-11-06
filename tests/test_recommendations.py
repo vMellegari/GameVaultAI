@@ -31,6 +31,11 @@ def test_recommendations_use_gemini_and_enrich_exact_rawg_match(
     monkeypatch,
 ):
     create_game(title="Favorite RPG", game_type="STANDARD")
+    monkeypatch.setattr(
+        recommendation_service.settings,
+        "GEMINI_API_KEY",
+        "test-gemini-api-key",
+    )
     configured_model = "test-gemini-model"
     monkeypatch.setattr(
         recommendation_service.settings,
